@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ParkitJiran</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  /* Full-box touch target for date/time pickers */
+  .date-field, .time-field { position: relative; }
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+  /* Help button active state (fulfil panel open) */
+  .btn-help.active {
+    background-color: #0d9488;
+    color: #ffffff;
+    border-color: #0d9488;
+  }
+  /* Smooth transitions on icon/caret */
+  .icon, .closed-caret { display: inline-block; transition: transform 0.2s ease; }
+</style>
+</head>
+
+<body class="bg-slate-50 antialiased min-h-screen">
+
+<!-- ═══ Header ═══════════════════════════════════════════ -->
+<header class="bg-gradient-to-br from-teal-800 via-teal-700 to-teal-500 text-white text-center px-5 pt-8 pb-7">
+  <div class="text-4xl mb-2">🚗</div>
+  <h1 class="text-2xl font-extrabold tracking-tight">ParkitJiran</h1>
+  <p class="text-sm text-teal-100 mt-1.5 leading-relaxed">Parkir bersama jiran — mudah, cepat, percuma.</p>
+</header>
+
+<!-- ═══ Main ══════════════════════════════════════════════ -->
+<main class="max-w-lg mx-auto px-4 pt-5 pb-16">
+
+  <!-- Toggle form button -->
+  <button id="toggle-form-btn"
+    class="flex items-center justify-center gap-2.5 w-full min-h-[54px] px-5 py-4 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white rounded-2xl font-bold text-base transition-colors mb-4 shadow-lg shadow-teal-600/25"
+    aria-expanded="false" aria-controls="form-card">
+    <span class="icon text-xl leading-none font-light">+</span>
+    <span>Buat Permintaan Parkir</span>
+  </button>
+
+  <!-- ── Request form card ───────────────────────────────── -->
+  <div id="form-card" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 mb-6 overflow-hidden"
+    role="region" aria-label="Borang permintaan parkir">
+    <div class="p-5">
+      <p class="text-[11px] font-extrabold text-teal-700 uppercase tracking-widest mb-5">Isi maklumat anda</p>
+
+      <div class="mb-4">
+        <label for="f-name" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Nama</label>
+        <input type="text" id="f-name" placeholder="contoh: Ahmad" autocomplete="name"
+          class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
+      </div>
+      <div class="mb-4">
+        <label for="f-unit" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">No. Unit</label>
+        <input type="text" id="f-unit" placeholder="contoh: 1-3-7" autocomplete="off"
+          class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
+      </div>
+      <div class="mb-2">
+        <label for="f-phone" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">No. Telefon</label>
+        <input type="tel" id="f-phone" placeholder="contoh: 0123456789" autocomplete="tel"
+          class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
+      </div>
+
+      <!-- Start datetime -->
+      <div class="mt-5 mb-2.5 pb-2 border-b border-slate-100 flex items-center gap-2">
+        <span class="text-[11px] font-extrabold text-teal-700 uppercase tracking-widest">Tarikh &amp; Masa Mula</span>
+      </div>
+      <div class="grid grid-cols-2 gap-3 mb-2">
+        <div class="date-field">
+          <label for="f-from-date" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Tarikh</label>
+          <input type="date" id="f-from-date"
+            class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10 cursor-pointer">
+        </div>
+        <div class="time-field">
+          <label for="f-from-time" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Masa</label>
+          <input type="time" id="f-from-time" step="3600"
+            class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10 cursor-pointer">
+        </div>
+      </div>
+
+      <!-- End datetime -->
+      <div class="mt-5 mb-2.5 pb-2 border-b border-slate-100">
+        <span class="text-[11px] font-extrabold text-teal-700 uppercase tracking-widest">Tarikh &amp; Masa Tamat</span>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="date-field">
+          <label for="f-to-date" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Tarikh</label>
+          <input type="date" id="f-to-date"
+            class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10 cursor-pointer">
+        </div>
+        <div class="time-field">
+          <label for="f-to-time" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Masa</label>
+          <input type="time" id="f-to-time" step="3600"
+            class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10 cursor-pointer">
+        </div>
+      </div>
+
+      <div id="form-error"
+        class="hidden mt-4 px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-semibold leading-snug"
+        role="alert"></div>
+
+      <button id="submit-btn"
+        class="block w-full min-h-[52px] py-3.5 px-4 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white rounded-xl text-base font-bold cursor-pointer mt-5 transition-colors">
+        Hantar Permintaan
+      </button>
+
+      <div id="form-success"
+        class="hidden mt-4 px-4 py-3 bg-teal-50 text-teal-800 border border-teal-200 rounded-xl text-sm font-semibold"
+        role="status">
+        ✓ Permintaan anda telah dihantar!
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Open requests ───────────────────────────────────── -->
+  <p class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">Permintaan Terbuka</p>
+  <div id="request-list"></div>
+
+  <div id="empty-state" class="hidden text-center py-16 px-5">
+    <span class="text-5xl block mb-4">🅿️</span>
+    <p class="text-base text-slate-400 leading-relaxed">Tiada permintaan parkir buat masa ini.</p>
+  </div>
+
+  <!-- ── Closed requests ─────────────────────────────────── -->
+  <button id="toggle-closed-btn"
+    class="flex items-center justify-between w-full min-h-[48px] px-4 py-3 bg-white text-slate-500 border border-slate-200 rounded-xl text-sm font-bold cursor-pointer mt-2 hover:bg-slate-50 hover:border-slate-300 transition-colors"
+    aria-expanded="false" aria-controls="closed-list">
+    <span class="flex items-center gap-2">
+      <span>📋</span>
+      <span id="closed-btn-label">Permintaan Tutup</span>
+    </span>
+    <span class="closed-caret text-xs text-slate-400">▼</span>
+  </button>
+
+  <div id="closed-list" class="hidden mt-3" role="region" aria-label="Permintaan tutup"></div>
+
+</main>
+
+<!-- WA SVG symbol -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="wa-icon" viewBox="0 0 24 24">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+    <path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.554 4.103 1.523 5.824L.057 23.272a.75.75 0 0 0 .916.916l5.448-1.466A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.714 9.714 0 0 1-4.946-1.349l-.355-.211-3.676.99.99-3.607-.228-.371A9.714 9.714 0 0 1 2.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"/>
+  </symbol>
+</svg>
+
+<script>
+/* ── Helpers ──────────────────────────────────────────── */
+function uuid() {
+  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+}
+function esc(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function loadRequests() {
+  try { return JSON.parse(localStorage.getItem('parkitjiran_v2') || '[]'); } catch { return []; }
+}
+function saveRequests(list) {
+  localStorage.setItem('parkitjiran_v2', JSON.stringify(list));
+}
+function waPhone(phone) {
+  return phone.replace(/\D/g,'').replace(/^0/,'60');
+}
+
+/* ── Malay date/time ──────────────────────────────────── */
+const DAYS   = ['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
+const MONTHS = ['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogos','Sep','Okt','Nov','Dis'];
+
+function fmtMalay(iso) {
+  const d = new Date(iso);
+  const h24 = d.getHours();
+  let period, h;
+  if (h24 === 0)       { h = 12; period = 'tgh. malam'; }
+  else if (h24 < 12)   { h = h24; period = 'pagi'; }
+  else if (h24 === 12) { h = 12; period = 'tgh. hari'; }
+  else                 { h = h24 - 12; period = 'petang'; }
+  return `${DAYS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${h}:00 ${period}`;
+}
+
+/* ── Form defaults ────────────────────────────────────── */
+function setFormDefaults() {
+  const now = new Date();
+  now.setMinutes(0, 0, 0);
+  const pad = n => String(n).padStart(2, '0');
+  const dateStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  const timeStr = `${pad(now.getHours())}:00`;
+  document.getElementById('f-from-date').value = dateStr;
+  document.getElementById('f-from-time').value = timeStr;
+  const end = new Date(now.getTime() + 3600000);
+  document.getElementById('f-to-date').value = `${end.getFullYear()}-${pad(end.getMonth()+1)}-${pad(end.getDate())}`;
+  document.getElementById('f-to-time').value = `${pad(end.getHours())}:00`;
+}
+
+/* ── Picker tap ───────────────────────────────────────── */
+function wirePickerTap() {
+  document.querySelectorAll('input[type="date"], input[type="time"]').forEach(input => {
+    input.addEventListener('click', function () {
+      if (typeof this.showPicker === 'function') {
+        try { this.showPicker(); } catch (_) {}
+      }
+    });
+  });
+}
+
+/* ── Form toggle ──────────────────────────────────────── */
+const toggleBtn = document.getElementById('toggle-form-btn');
+const formCard  = document.getElementById('form-card');
+
+toggleBtn.addEventListener('click', () => {
+  formCard.classList.toggle('hidden');
+  const isOpen = !formCard.classList.contains('hidden');
+  toggleBtn.setAttribute('aria-expanded', String(isOpen));
+  toggleBtn.querySelector('.icon').style.transform = isOpen ? 'rotate(45deg)' : '';
+  document.getElementById('form-error').classList.add('hidden');
+  document.getElementById('form-success').classList.add('hidden');
+  if (isOpen) { setFormDefaults(); document.getElementById('f-name').focus(); }
+});
+
+/* ── Form submit ──────────────────────────────────────── */
+const errEl = document.getElementById('form-error');
+const sucEl = document.getElementById('form-success');
+
+function showFormError(msg) {
+  errEl.textContent = msg;
+  errEl.classList.remove('hidden');
+  sucEl.classList.add('hidden');
+}
+
+document.getElementById('submit-btn').addEventListener('click', () => {
+  errEl.classList.add('hidden');
+
+  const name     = document.getElementById('f-name').value.trim();
+  const unit     = document.getElementById('f-unit').value.trim();
+  const phone    = document.getElementById('f-phone').value.trim();
+  const fromDate = document.getElementById('f-from-date').value;
+  const fromTime = document.getElementById('f-from-time').value;
+  const toDate   = document.getElementById('f-to-date').value;
+  const toTime   = document.getElementById('f-to-time').value;
+
+  if (!name || !unit || !phone || !fromDate || !fromTime || !toDate || !toTime) {
+    showFormError('Sila isi semua ruangan sebelum menghantar.');
+    return;
+  }
+  const fromISO = `${fromDate}T${fromTime}:00`;
+  const toISO   = `${toDate}T${toTime}:00`;
+  if (new Date(toISO) <= new Date(fromISO)) {
+    showFormError('Masa tamat mesti selepas masa mula.');
+    return;
+  }
+
+  const list = loadRequests();
+  list.unshift({ id: uuid(), name, unit, phone, from_datetime: fromISO, to_datetime: toISO,
+    status: 'open', fulfilled_by: null, created_at: new Date().toISOString() });
+  saveRequests(list);
+
+  ['f-name','f-unit','f-phone'].forEach(id => { document.getElementById(id).value = ''; });
+  sucEl.classList.remove('hidden');
+
+  setTimeout(() => {
+    formCard.classList.add('hidden');
+    toggleBtn.setAttribute('aria-expanded', 'false');
+    toggleBtn.querySelector('.icon').style.transform = '';
+    sucEl.classList.add('hidden');
+  }, 1800);
+
+  renderList();
+});
+
+/* ── Shared class strings for dynamic cards ───────────── */
+const INPUT = 'block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10';
+const LABEL = 'block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5';
+
+/* ── Build open card ──────────────────────────────────── */
+function buildOpenCard(req) {
+  const card = document.createElement('div');
+  card.className = 'bg-white rounded-2xl shadow-sm mb-3.5 overflow-hidden border border-slate-200 hover:border-teal-300 hover:shadow transition-all req-card';
+  card.dataset.id = req.id;
+  card.innerHTML = `
+    <div class="p-4 pb-3.5">
+      <div class="font-extrabold text-slate-800 text-[1.05rem] mb-0.5">${esc(req.name)}</div>
+      <div class="text-xs font-semibold text-slate-400 mb-3">Unit ${esc(req.unit)}</div>
+      <div class="bg-teal-50 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 leading-relaxed mb-3.5">
+        ${fmtMalay(req.from_datetime)}<span class="text-teal-400 font-bold mx-2">→</span>${fmtMalay(req.to_datetime)}
+      </div>
+      <div class="flex items-center gap-2.5 flex-wrap">
+        <a class="inline-flex items-center gap-1.5 min-h-[42px] px-3.5 py-2 bg-[#25d366] hover:bg-[#1ebe59] text-white rounded-xl text-sm font-bold no-underline whitespace-nowrap transition-colors"
+           href="https://wa.me/${waPhone(req.phone)}" target="_blank" rel="noopener noreferrer">
+          <svg class="w-[17px] h-[17px] fill-white shrink-0"><use href="#wa-icon"/></svg>WhatsApp
+        </a>
+        <button class="btn-help flex-1 min-h-[44px] px-3.5 py-2.5 bg-teal-50 text-teal-700 border border-teal-200 rounded-xl text-sm font-bold cursor-pointer whitespace-nowrap transition-all hover:bg-teal-100"
+                data-id="${esc(req.id)}">🙋 Saya Boleh Bantu</button>
+      </div>
+    </div>
+    <div class="fulfil-panel hidden border-t border-slate-100 p-4 bg-teal-50/60" id="fp-${esc(req.id)}">
+      <p class="text-[11px] font-extrabold text-teal-700 uppercase tracking-widest mb-4">Maklumat anda sebagai pembantu</p>
+      <div class="fulfil-form space-y-3">
+        <div>
+          <label class="${LABEL}">Nama</label>
+          <input type="text" class="fp-name ${INPUT}" placeholder="contoh: Siti" autocomplete="name">
+        </div>
+        <div>
+          <label class="${LABEL}">No. Unit</label>
+          <input type="text" class="fp-unit ${INPUT}" placeholder="contoh: 2-1-15" autocomplete="off">
+        </div>
+        <div>
+          <label class="${LABEL}">No. Telefon</label>
+          <input type="tel" class="fp-phone ${INPUT}" placeholder="contoh: 0123456789" autocomplete="tel">
+        </div>
+        <div>
+          <label class="${LABEL}">No. Lot Parking</label>
+          <input type="text" class="fp-bay ${INPUT}" placeholder="contoh: B1-42" autocomplete="off">
+        </div>
+        <div class="fp-err hidden px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-semibold"></div>
+        <button class="btn-confirm block w-full min-h-[50px] py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold cursor-pointer transition-colors"
+                data-id="${esc(req.id)}">Sahkan &amp; Bantu</button>
+      </div>
+      <div class="fulfil-success hidden bg-white rounded-xl border border-teal-200 p-5 text-center" id="fs-${esc(req.id)}">
+        <p class="fs-msg text-sm text-slate-700 leading-relaxed mb-4"></p>
+        <a class="inline-flex w-full items-center justify-center gap-2 min-h-[50px] px-4 py-3 bg-[#25d366] hover:bg-[#1ebe59] text-white rounded-xl text-base font-bold no-underline transition-colors"
+           target="_blank" rel="noopener noreferrer">
+          <svg class="w-[17px] h-[17px] fill-white shrink-0"><use href="#wa-icon"/></svg>Buka WhatsApp
+        </a>
+      </div>
+    </div>`;
+  return card;
+}
+
+/* ── Confirm fulfil ───────────────────────────────────── */
+function confirmFulfil(id) {
+  const panel    = document.getElementById(`fp-${id}`);
+  const errMsgEl = panel.querySelector('.fp-err');
+  errMsgEl.classList.add('hidden');
+
+  const fName  = panel.querySelector('.fp-name').value.trim();
+  const fUnit  = panel.querySelector('.fp-unit').value.trim();
+  const fPhone = panel.querySelector('.fp-phone').value.trim();
+  const fBay   = panel.querySelector('.fp-bay').value.trim();
+
+  if (!fName || !fUnit || !fPhone || !fBay) {
+    errMsgEl.textContent = 'Sila isi semua ruangan.';
+    errMsgEl.classList.remove('hidden');
+    return;
+  }
+
+  const list = loadRequests();
+  const req  = list.find(r => r.id === id);
+  if (!req) return;
+
+  req.status       = 'fulfilled';
+  req.fulfilled_by = { name: fName, unit: fUnit, phone: fPhone, bay: fBay };
+  saveRequests(list);
+
+  panel.querySelector('.fulfil-form').classList.add('hidden');
+  const successDiv = document.getElementById(`fs-${id}`);
+  successDiv.classList.remove('hidden');
+  successDiv.querySelector('.fs-msg').textContent =
+    `Terima kasih ${fName}! Hubungi ${req.name} di WhatsApp untuk urusan lanjut.`;
+  successDiv.querySelector('a').href = `https://wa.me/${waPhone(req.phone)}`;
+
+  setTimeout(() => renderList(), 3200);
+}
+
+/* ── Render open list ─────────────────────────────────── */
+function renderList() {
+  const all      = loadRequests();
+  const openList = all.filter(r => r.status === 'open');
+  const listEl   = document.getElementById('request-list');
+  const emptyEl  = document.getElementById('empty-state');
+
+  listEl.innerHTML = '';
+  emptyEl.classList.toggle('hidden', openList.length > 0);
+
+  openList.forEach(req => listEl.appendChild(buildOpenCard(req)));
+
+  listEl.querySelectorAll('.btn-help').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const panel = document.getElementById(`fp-${btn.dataset.id}`);
+      panel.classList.toggle('hidden');
+      const open = !panel.classList.contains('hidden');
+      btn.classList.toggle('active', open);
+      if (open) panel.querySelector('.fp-name').focus();
+    });
+  });
+
+  listEl.querySelectorAll('.btn-confirm').forEach(btn => {
+    btn.addEventListener('click', () => confirmFulfil(btn.dataset.id));
+  });
+
+  renderClosedList(all);
+}
+
+/* ── Render closed list ───────────────────────────────── */
+function renderClosedList(all) {
+  const closedList = (all || loadRequests()).filter(r => r.status === 'fulfilled');
+  const closedEl   = document.getElementById('closed-list');
+
+  document.getElementById('closed-btn-label').textContent =
+    `Permintaan Tutup${closedList.length ? ` (${closedList.length})` : ''}`;
+
+  closedEl.innerHTML = '';
+
+  if (closedList.length === 0) {
+    closedEl.innerHTML = `
+      <div class="text-center py-8 px-4 text-sm text-slate-400 bg-white rounded-2xl border border-slate-100">
+        Belum ada permintaan yang diselesaikan.
+      </div>`;
+    return;
+  }
+
+  closedList.forEach(req => {
+    const fb   = req.fulfilled_by;
+    const card = document.createElement('div');
+    card.className = 'bg-white rounded-xl mb-2.5 border border-slate-100 px-4 py-3.5 opacity-80';
+    card.innerHTML = `
+      <div class="flex items-start justify-between gap-3 mb-2">
+        <div>
+          <div class="text-sm font-bold text-slate-500">${esc(req.name)}</div>
+          <div class="text-xs text-slate-400 mt-0.5">Unit ${esc(req.unit)}</div>
+        </div>
+        <span class="shrink-0 bg-emerald-50 text-emerald-700 text-[11px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap border border-emerald-100">✓ Selesai</span>
+      </div>
+      <div class="text-xs text-slate-400 leading-relaxed mb-2.5">
+        ${fmtMalay(req.from_datetime)}<span class="mx-1.5 opacity-40">→</span>${fmtMalay(req.to_datetime)}
+      </div>
+      ${fb ? `<div class="text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2 leading-relaxed border border-slate-100">
+        Dibantu oleh <strong class="font-semibold">${esc(fb.name)}</strong> (Unit ${esc(fb.unit)}) · Lot <strong class="font-semibold">${esc(fb.bay)}</strong>
+      </div>` : ''}`;
+    closedEl.appendChild(card);
+  });
+}
+
+/* ── Closed section toggle ────────────────────────────── */
+document.getElementById('toggle-closed-btn').addEventListener('click', () => {
+  const btn      = document.getElementById('toggle-closed-btn');
+  const closedEl = document.getElementById('closed-list');
+  closedEl.classList.toggle('hidden');
+  const isOpen = !closedEl.classList.contains('hidden');
+  btn.setAttribute('aria-expanded', String(isOpen));
+  btn.querySelector('.closed-caret').style.transform = isOpen ? 'rotate(180deg)' : '';
+});
+
+/* ── Init ─────────────────────────────────────────────── */
+wirePickerTap();
+renderList();
+</script>
+</body>
+</html>
