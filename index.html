@@ -189,6 +189,23 @@ function fmtMalay(iso) {
   return `${DAYS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${h}:00 ${period}`;
 }
 
+const DAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+function fmtSlot(iso) {
+  const d = new Date(iso);
+  const h24 = d.getHours();
+  let period, h;
+  if (h24 === 0)       { h = 12; period = 'mlm'; }
+  else if (h24 < 12)   { h = h24; period = 'pgi'; }
+  else if (h24 === 12) { h = 12;  period = 'tgh'; }
+  else                 { h = h24 - 12; period = 'ptg'; }
+  return {
+    dow:  DAYS_SHORT[d.getDay()],
+    date: `${d.getDate()} ${MONTHS[d.getMonth()]}`,
+    time: `${h}:00${period}`,
+  };
+}
+
 /* ── Form defaults ────────────────────────────────────── */
 function setFormDefaults() {
   const now = new Date();
@@ -285,21 +302,30 @@ const LABEL = 'block text-[11px] font-bold text-slate-400 uppercase tracking-wid
 /* ── Build open card ──────────────────────────────────── */
 function buildOpenCard(req) {
   const card = document.createElement('div');
-  card.className = 'bg-white rounded-2xl shadow-sm mb-3.5 overflow-hidden border border-slate-200 hover:border-teal-300 hover:shadow transition-all req-card';
+  card.className = 'bg-white rounded-2xl shadow-sm mb-2 overflow-hidden border border-slate-200 hover:border-teal-300 hover:shadow transition-all req-card';
   card.dataset.id = req.id;
   card.innerHTML = `
-    <div class="p-4 pb-3.5">
-      <div class="font-extrabold text-slate-800 text-[1.05rem] mb-0.5">${esc(req.name)}</div>
-      <div class="text-xs font-semibold text-slate-400 mb-3">Unit ${esc(req.unit)}</div>
-      <div class="bg-teal-50 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 leading-relaxed mb-3.5">
-        ${fmtMalay(req.from_datetime)}<span class="text-teal-400 font-bold mx-2">→</span>${fmtMalay(req.to_datetime)}
+    <div class="p-3">
+      <div class="flex justify-between items-start mb-2.5">
+        ${(([f,t]) => `
+          <div>
+            <div class="text-[10px] font-extrabold text-teal-600 uppercase tracking-widest mb-0.5">Dari</div>
+            <div class="text-xs font-semibold text-slate-500">${f.dow} ${f.date}</div>
+            <div class="text-sm font-bold text-slate-800">${f.time}</div>
+          </div>
+          <div class="text-slate-300 text-lg font-light self-center px-1">→</div>
+          <div class="text-right">
+            <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-0.5">Hingga</div>
+            <div class="text-xs font-semibold text-slate-500">${t.dow} ${t.date}</div>
+            <div class="text-sm font-bold text-slate-800">${t.time}</div>
+          </div>
+        `)([fmtSlot(req.from_datetime), fmtSlot(req.to_datetime)])}
       </div>
-      <div class="flex items-center gap-2.5 flex-wrap">
-        <a class="inline-flex items-center gap-1.5 min-h-[42px] px-3.5 py-2 bg-[#25d366] hover:bg-[#1ebe59] text-white rounded-xl text-sm font-bold no-underline whitespace-nowrap transition-colors"
-           href="https://wa.me/${waPhone(req.phone)}" target="_blank" rel="noopener noreferrer">
-          <svg class="w-[17px] h-[17px] fill-white shrink-0"><use href="#wa-icon"/></svg>WhatsApp
-        </a>
-        <button class="btn-help flex-1 min-h-[44px] px-3.5 py-2.5 bg-teal-50 text-teal-700 border border-teal-200 rounded-xl text-sm font-bold cursor-pointer whitespace-nowrap transition-all hover:bg-teal-100"
+      <div class="mb-2">
+        <span class="text-[11px] text-slate-400 font-semibold">${esc(req.name)} · Unit ${esc(req.unit)}</span>
+      </div>
+      <div>
+        <button class="btn-help w-full min-h-[40px] px-3 py-2 bg-teal-50 text-teal-700 border border-teal-200 rounded-xl text-sm font-bold cursor-pointer whitespace-nowrap transition-all hover:bg-teal-100"
                 data-id="${esc(req.id)}">🙋 Saya Boleh Bantu</button>
       </div>
     </div>
