@@ -143,7 +143,71 @@
 
   <div id="closed-list" class="hidden mt-3" role="region" aria-label="Permintaan tutup"></div>
 
+  <p class="text-center text-[11px] text-slate-400 mt-8">
+    Dengan menggunakan ParkitJiran, anda bersetuju dengan
+    <button id="btn-privacy" class="underline hover:text-teal-600 transition-colors focus:outline-none">Dasar Privasi</button> kami.
+  </p>
+
 </main>
+
+<!-- ═══ Privacy modal ════════════════════════════════════ -->
+<div id="modal-privacy"
+  class="hidden fixed inset-0 z-50 flex items-start justify-center bg-black/40 backdrop-blur-sm p-4 overflow-y-auto"
+  role="dialog" aria-modal="true" aria-labelledby="modal-privacy-title">
+  <div class="bg-white rounded-2xl shadow-lg max-w-lg w-full my-8 p-6 relative">
+    <button id="btn-privacy-close" aria-label="Tutup"
+      class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors text-xl leading-none focus:outline-none">&#215;</button>
+
+    <h2 id="modal-privacy-title" class="text-xl font-extrabold text-teal-700 mb-1">Dasar Privasi</h2>
+    <p class="text-[11px] text-slate-400 mb-6">Kuat kuasa: April 2026</p>
+
+    <section class="mb-5">
+      <h3 class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">1. Pengenalan</h3>
+      <p class="text-sm text-slate-600 leading-relaxed">ParkitJiran ialah aplikasi web percuma yang membantu penduduk kondominium berkongsi parking bersama jiran. Kami mengambil serius privasi anda dan berkomited untuk melindungi maklumat yang anda berikan.</p>
+    </section>
+
+    <section class="mb-5">
+      <h3 class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">2. Maklumat Yang Kami Kumpul</h3>
+      <p class="text-sm text-slate-600 leading-relaxed mb-2">Apabila anda membuat atau memenuhi permintaan parkir, anda mungkin memasukkan:</p>
+      <ul class="text-sm text-slate-600 leading-relaxed list-disc list-inside space-y-1">
+        <li>Nama penuh</li>
+        <li>Nombor unit kediaman</li>
+        <li>Nombor telefon</li>
+        <li>Nombor lot parking</li>
+      </ul>
+    </section>
+
+    <section class="mb-5">
+      <h3 class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">3. Bagaimana Data Disimpan</h3>
+      <p class="text-sm text-slate-600 leading-relaxed">Buat masa ini, <strong class="font-semibold text-slate-700">semua maklumat disimpan secara tempatan</strong> dalam penyimpanan pelayar anda (<code class="bg-slate-100 px-1 rounded text-xs">localStorage</code>) sahaja. Tiada data dihantar ke mana-mana pelayan atau awan. Data hanya wujud pada peranti yang anda gunakan semasa ini.</p>
+    </section>
+
+    <section class="mb-5">
+      <h3 class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">4. Penggunaan Data</h3>
+      <p class="text-sm text-slate-600 leading-relaxed">Data anda digunakan semata-mata untuk menjana pautan WhatsApp supaya jiran-jiran boleh berhubung terus antara satu sama lain. Tiada maklumat diproses atau disimpan di luar peranti anda.</p>
+    </section>
+
+    <section class="mb-5">
+      <h3 class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">5. Perkongsian Data</h3>
+      <p class="text-sm text-slate-600 leading-relaxed">Kami <strong class="font-semibold text-slate-700">tidak berkongsi, menjual, atau memindahkan</strong> data anda kepada mana-mana pihak ketiga. Pautan WhatsApp dijana secara tempatan dan komunikasi seterusnya adalah antara pengguna sahaja.</p>
+    </section>
+
+    <section class="mb-5">
+      <h3 class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">6. Hak Anda</h3>
+      <p class="text-sm text-slate-600 leading-relaxed">Anda boleh memadam semua data pada bila-bila masa melalui tetapan pelayar anda: <span class="font-medium text-slate-700">Tetapan → Privasi → Kosongkan Data Tapak</span>. Semua rekod akan dipadam sepenuhnya dari peranti anda.</p>
+    </section>
+
+    <section class="mb-6">
+      <h3 class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">7. Perubahan Dasar</h3>
+      <p class="text-sm text-slate-600 leading-relaxed">Dasar Privasi ini mungkin dikemaskini dari semasa ke semasa. Sebarang perubahan ketara akan dimaklumkan dalam aplikasi ini.</p>
+    </section>
+
+    <button id="btn-privacy-close-bottom"
+      class="block w-full min-h-[48px] py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold cursor-pointer transition-colors">
+      Faham
+    </button>
+  </div>
+</div>
 
 <!-- WA SVG symbol -->
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
@@ -153,58 +217,9 @@
   </symbol>
 </svg>
 
-<script>
-/* ── Helpers ──────────────────────────────────────────── */
-function uuid() {
-  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
-    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
-}
-function esc(str) {
-  return String(str)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function loadRequests() {
-  try { return JSON.parse(localStorage.getItem('parkitjiran_v2') || '[]'); } catch { return []; }
-}
-function saveRequests(list) {
-  localStorage.setItem('parkitjiran_v2', JSON.stringify(list));
-}
-function waPhone(phone) {
-  return phone.replace(/\D/g,'').replace(/^0/,'60');
-}
-
-/* ── Malay date/time ──────────────────────────────────── */
-const DAYS   = ['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
-const MONTHS = ['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogos','Sep','Okt','Nov','Dis'];
-
-function fmtMalay(iso) {
-  const d = new Date(iso);
-  const h24 = d.getHours();
-  let period, h;
-  if (h24 === 0)       { h = 12; period = 'tgh. malam'; }
-  else if (h24 < 12)   { h = h24; period = 'pagi'; }
-  else if (h24 === 12) { h = 12; period = 'tgh. hari'; }
-  else                 { h = h24 - 12; period = 'petang'; }
-  return `${DAYS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${h}:00 ${period}`;
-}
-
-const DAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-
-function fmtSlot(iso) {
-  const d = new Date(iso);
-  const h24 = d.getHours();
-  let period, h;
-  if (h24 === 0)       { h = 12; period = 'mlm'; }
-  else if (h24 < 12)   { h = h24; period = 'pgi'; }
-  else if (h24 === 12) { h = 12;  period = 'tgh'; }
-  else                 { h = h24 - 12; period = 'ptg'; }
-  return {
-    dow:  DAYS_SHORT[d.getDay()],
-    date: `${d.getDate()} ${MONTHS[d.getMonth()]}`,
-    time: `${h}:00${period}`,
-  };
-}
+<script type="module">
+import { uuid, esc, sanitize, loadRequests, saveRequests, waPhone, fmtMalay, fmtSlot,
+         validateRequestForm, validateFulfilForm } from './src/lib.js';
 
 /* ── Form defaults ────────────────────────────────────── */
 function setFormDefaults() {
@@ -258,24 +273,17 @@ function showFormError(msg) {
 document.getElementById('submit-btn').addEventListener('click', () => {
   errEl.classList.add('hidden');
 
-  const name     = document.getElementById('f-name').value.trim();
-  const unit     = document.getElementById('f-unit').value.trim();
-  const phone    = document.getElementById('f-phone').value.trim();
+  const name     = sanitize(document.getElementById('f-name').value, 100);
+  const unit     = sanitize(document.getElementById('f-unit').value, 20);
+  const phone    = sanitize(document.getElementById('f-phone').value, 20);
   const fromDate = document.getElementById('f-from-date').value;
   const fromTime = document.getElementById('f-from-time').value;
   const toDate   = document.getElementById('f-to-date').value;
   const toTime   = document.getElementById('f-to-time').value;
 
-  if (!name || !unit || !phone || !fromDate || !fromTime || !toDate || !toTime) {
-    showFormError('Sila isi semua ruangan sebelum menghantar.');
-    return;
-  }
-  const fromISO = `${fromDate}T${fromTime}:00`;
-  const toISO   = `${toDate}T${toTime}:00`;
-  if (new Date(toISO) <= new Date(fromISO)) {
-    showFormError('Masa tamat mesti selepas masa mula.');
-    return;
-  }
+  const validation = validateRequestForm({ name, unit, phone, fromDate, fromTime, toDate, toTime });
+  if (!validation.ok) { showFormError(validation.error); return; }
+  const { fromISO, toISO } = validation;
 
   const list = loadRequests();
   list.unshift({ id: uuid(), name, unit, phone, from_datetime: fromISO, to_datetime: toISO,
@@ -369,16 +377,13 @@ function confirmFulfil(id) {
   const errMsgEl = panel.querySelector('.fp-err');
   errMsgEl.classList.add('hidden');
 
-  const fName  = panel.querySelector('.fp-name').value.trim();
-  const fUnit  = panel.querySelector('.fp-unit').value.trim();
-  const fPhone = panel.querySelector('.fp-phone').value.trim();
-  const fBay   = panel.querySelector('.fp-bay').value.trim();
+  const fName  = sanitize(panel.querySelector('.fp-name').value, 100);
+  const fUnit  = sanitize(panel.querySelector('.fp-unit').value, 20);
+  const fPhone = sanitize(panel.querySelector('.fp-phone').value, 20);
+  const fBay   = sanitize(panel.querySelector('.fp-bay').value, 20);
 
-  if (!fName || !fUnit || !fPhone || !fBay) {
-    errMsgEl.textContent = 'Sila isi semua ruangan.';
-    errMsgEl.classList.remove('hidden');
-    return;
-  }
+  const fv = validateFulfilForm({ fName, fUnit, fPhone, fBay });
+  if (!fv.ok) { errMsgEl.textContent = fv.error; errMsgEl.classList.remove('hidden'); return; }
 
   const list = loadRequests();
   const req  = list.find(r => r.id === id);
@@ -480,6 +485,16 @@ document.getElementById('toggle-closed-btn').addEventListener('click', () => {
 /* ── Init ─────────────────────────────────────────────── */
 wirePickerTap();
 renderList();
+
+/* ── Privacy modal ────────────────────────────────────── */
+const privacyModal = document.getElementById('modal-privacy');
+function openPrivacy()  { privacyModal.classList.remove('hidden'); privacyModal.focus(); }
+function closePrivacy() { privacyModal.classList.add('hidden'); }
+document.getElementById('btn-privacy').addEventListener('click', openPrivacy);
+document.getElementById('btn-privacy-close').addEventListener('click', closePrivacy);
+document.getElementById('btn-privacy-close-bottom').addEventListener('click', closePrivacy);
+privacyModal.addEventListener('click', e => { if (e.target === privacyModal) closePrivacy(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePrivacy(); });
 </script>
 </body>
 </html>
