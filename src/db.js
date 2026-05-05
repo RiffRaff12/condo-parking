@@ -51,7 +51,10 @@ export function createDb(client) {
     async savePushSubscription(userId, subscriptionJson) {
       const { data, error } = await client
         .from('push_subscriptions')
-        .upsert({ user_id: userId, subscription_json: subscriptionJson }, { onConflict: 'user_id' })
+        .upsert(
+          { user_id: userId, endpoint: subscriptionJson.endpoint, subscription_json: subscriptionJson },
+          { onConflict: 'user_id,endpoint' }
+        )
         .select()
         .single()
       if (error) throw error
@@ -68,13 +71,14 @@ export function createDb(client) {
       return data
     },
 
-    async fetchClosedRequests() {
+    async fetchClosedRequests(userId) {
       const { data, error } = await client
         .from('requests')
         .select('*')
         .in('status', ['resolved', 'cancelled', 'expired'])
-        .order('created_at', { ascending: false })
+        .eq('requester_id', userId)
         .limit(20)
+        .order('created_at', { ascending: false })
       if (error) throw error
       return data
     },

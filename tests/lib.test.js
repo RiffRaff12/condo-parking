@@ -1,4 +1,4 @@
-import { uuid, esc, waPhone, fmtMalay, fmtSlot, loadRequests, saveRequests, buildFulfillmentMessage, shouldShowCancelButton, buildRevocationMessage, shouldShowRevokeButton, buildExpiryMessage, buildDailyDigestMessage, buildCommitmentPingMessage, buildWhatsAppLink, buildParkingPass } from '../src/lib.js'
+import { uuid, esc, waPhone, fmtMalay, fmtSlot, loadRequests, saveRequests, buildFulfillmentMessage, shouldShowCancelButton, buildRevocationMessage, shouldShowRevokeButton, buildExpiryMessage, buildDailyDigestMessage, buildCommitmentPingMessage, buildWhatsAppLink, buildParkingPass, buildWhatsAppFulfilLink } from '../src/lib.js'
 
 describe('uuid', () => {
   test('returns a 36-character string', () => {
@@ -250,6 +250,38 @@ describe('buildWhatsAppLink', () => {
 
   test('handles already-international number', () => {
     expect(buildWhatsAppLink('60123456789')).toBe('https://wa.me/60123456789')
+  })
+})
+
+describe('buildWhatsAppFulfilLink', () => {
+  const START = '2026-05-01T08:00:00'
+  const END   = '2026-05-01T10:00:00'
+
+  test('produces a wa.me URL with the fulfiller phone number', () => {
+    const url = buildWhatsAppFulfilLink('0123456789', START, END)
+    expect(url).toMatch(/^https:\/\/wa\.me\/60123456789/)
+  })
+
+  test('includes a ?text= query param', () => {
+    const url = buildWhatsAppFulfilLink('0123456789', START, END)
+    expect(url).toContain('?text=')
+  })
+
+  test('encoded message contains the start time in Malay', () => {
+    const url = buildWhatsAppFulfilLink('0123456789', START, END)
+    const text = decodeURIComponent(url.split('?text=')[1])
+    expect(text).toContain(fmtMalay(START))
+  })
+
+  test('encoded message contains the end time in Malay', () => {
+    const url = buildWhatsAppFulfilLink('0123456789', START, END)
+    const text = decodeURIComponent(url.split('?text=')[1])
+    expect(text).toContain(fmtMalay(END))
+  })
+
+  test('handles +60 prefix on fulfiller phone', () => {
+    const url = buildWhatsAppFulfilLink('+60123456789', START, END)
+    expect(url).toMatch(/^https:\/\/wa\.me\/60123456789/)
   })
 })
 

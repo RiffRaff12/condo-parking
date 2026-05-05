@@ -4,6 +4,8 @@ function mockClient(overrides = {}) {
   const builder = {
     select:      vi.fn().mockReturnThis(),
     eq:          vi.fn().mockReturnThis(),
+    in:          vi.fn().mockReturnThis(),
+    limit:       vi.fn().mockReturnThis(),
     order:       vi.fn().mockResolvedValue({ data: [], error: null }),
     insert:      vi.fn().mockReturnThis(),
     update:      vi.fn().mockReturnThis(),
@@ -126,7 +128,7 @@ describe('revokeRequest', () => {
 })
 
 describe('savePushSubscription', () => {
-  test('upserts a subscription for the user', async () => {
+  test('upserts on (user_id, endpoint) so multiple devices can register independently', async () => {
     const sub = { endpoint: 'https://push.example.com/abc', keys: { p256dh: 'key', auth: 'auth' } }
     const client = mockClient()
     client._builder.single.mockResolvedValue({ data: { user_id: 'user-1', subscription_json: sub }, error: null })
@@ -135,8 +137,8 @@ describe('savePushSubscription', () => {
     await db.savePushSubscription('user-1', sub)
 
     expect(client._builder.upsert).toHaveBeenCalledWith(
-      { user_id: 'user-1', subscription_json: sub },
-      { onConflict: 'user_id' }
+      { user_id: 'user-1', endpoint: 'https://push.example.com/abc', subscription_json: sub },
+      { onConflict: 'user_id,endpoint' }
     )
   })
 })
@@ -164,5 +166,39 @@ describe('fetchOpenRequests', () => {
     const result = await db.fetchOpenRequests()
 
     expect(result).toEqual(rows)
+  })
+})
+
+describe('fetchClosedRequests', () => {
+  test('filters by requester_id for the given userId', async () => {
+    const client = mockClient()
+    client._builder.order.mockResolvedValue({ data: [], error: null })
+    const db = createDb(client)
+
+    await db.fetchClosedRequests('user-42')
+
+    expect(client._builder.eq).toHaveBeenCalledWith('requester_id', 'user-42')
+  })
+
+  test('returns matching closed rows', async () => {
+    const rows = [{ id: '1', status: 'resolved', requester_id: 'user-42' }]
+    const client = mockClient()
+    client._builder.order.mockResolvedValue({ data: rows, error: null })
+    const db = createDb(client)
+
+    const result = await db.fetchClosedRequests('user-42')
+
+    expect(result).toEqual(rows)
+  })
+
+  test('does not return rows belonging to other users', async () => {
+    const client = mockClient()
+    client._builder.order.mockResolvedValue({ data: [], error: null })
+    const db = createDb(client)
+
+    const result = await db.fetchClosedRequests('user-99')
+
+    expect(client._builder.eq).not.toHaveBeenCalledWith('requester_id', 'user-42')
+    expect(result).toEqual([])
   })
 })

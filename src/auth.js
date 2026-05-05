@@ -1,19 +1,17 @@
-export function createAuth(client, supabaseUrl) {
+export function createAuth(client) {
   return {
     async verifyAndSignIn({ phone, unit, bay }) {
-      const res = await fetch(`${supabaseUrl}/functions/v1/verify-resident`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, unit, bay }),
+      const { data, error } = await client.functions.invoke('verify-resident', {
+        body: { phone, unit, bay },
       })
-      if (!res.ok) throw new Error('Ralat pelayan. Cuba lagi.')
-      const data = await res.json()
+      if (error) throw new Error('Ralat pelayan. Cuba lagi.')
       if (!data.matched) throw new Error('Maklumat tidak sepadan. Sila semak nombor telefon, unit, dan petak parkir anda.')
-      const { data: sessionData, error: sessionError } = await client.auth.verifyOtp({
-        token_hash: data.hashed_token,
-        type: 'magiclink',
+      const { error: sessionError } = await client.auth.setSession({
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
       })
       if (sessionError) throw sessionError
+      const { data: sessionData } = await client.auth.getSession()
       return sessionData.session
     },
 

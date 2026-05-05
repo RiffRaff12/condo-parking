@@ -53,6 +53,18 @@ export function fmtSlot(iso) {
   };
 }
 
+/* ── To-datetime defaults ─────────────────────────────── */
+export function computeToDefaults(fromDate, fromTime) {
+  if (fromTime < '22:00') {
+    return { toDate: fromDate, toTime: '22:00' }
+  }
+  const d = new Date(`${fromDate}T${fromTime}:00`)
+  d.setDate(d.getDate() + 1)
+  const pad = n => String(n).padStart(2, '0')
+  const nextDate = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`
+  return { toDate: nextDate, toTime: '08:00' }
+}
+
 /* ── Validation helpers ───────────────────────────────── */
 export function validateRequestForm({ fromDate, fromTime, toDate, toTime }) {
   if (!fromDate || !fromTime || !toDate || !toTime)
@@ -99,6 +111,11 @@ export function buildWhatsAppLink(phone) {
   return `https://wa.me/${waPhone(phone)}`
 }
 
+export function buildWhatsAppFulfilLink(phone, startIso, endIso) {
+  const msg = `Salam! Saya boleh tawarkan petak saya dari ${fmtMalay(startIso)} hingga ${fmtMalay(endIso)}. Boleh saya bantu?`
+  return `https://wa.me/${waPhone(phone)}?text=${encodeURIComponent(msg)}`
+}
+
 export function buildParkingPass({ fulfiller_bay, start_datetime, end_datetime, fulfiller_phone, requester_phone }) {
   return {
     bay:              fulfiller_bay,
@@ -115,8 +132,8 @@ export function validateOnboardingForm({ phone, unit, bay }) {
   return { ok: true };
 }
 
-export function validateFulfilForm({ fBay }) {
-  if (!fBay)
-    return { ok: false, error: 'Sila isi nombor lot parking anda.' };
+export function validateFulfilForm({ fName, fUnit, fPhone, fBay }) {
+  if (!fName || !fUnit || !fPhone || !fBay)
+    return { ok: false, error: 'Sila isi semua ruangan.' };
   return { ok: true };
 }

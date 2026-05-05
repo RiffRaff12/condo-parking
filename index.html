@@ -185,6 +185,19 @@
     <button id="btn-privacy" class="underline hover:text-teal-600 transition-colors focus:outline-none">Dasar Privasi</button> kami.
   </p>
 
+  <!-- ── Feedback form ───────────────────────────────────── -->
+  <div class="mt-6 bg-white rounded-2xl border border-slate-200 p-5">
+    <p class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">Maklum Balas</p>
+    <textarea id="feedback-msg" rows="3" placeholder="Tulis maklum balas atau laporan masalah anda di sini..."
+      class="block w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10 resize-none"></textarea>
+    <div id="feedback-err" class="hidden mt-3 px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-semibold" role="alert"></div>
+    <div id="feedback-ok" class="hidden mt-3 px-4 py-3 bg-teal-50 text-teal-800 border border-teal-200 rounded-xl text-sm font-semibold" role="status">✓ Maklum balas anda telah dihantar. Terima kasih!</div>
+    <button id="feedback-btn"
+      class="mt-3 w-full min-h-[48px] py-3 bg-slate-700 hover:bg-slate-800 text-white rounded-xl text-sm font-bold cursor-pointer transition-colors">
+      Hantar Maklum Balas
+    </button>
+  </div>
+
 </main>
 
 <!-- ═══ Privacy modal ════════════════════════════════════ -->
@@ -245,7 +258,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { createAuth } from './src/auth.js'
 import { createDb }   from './src/db.js'
-import { esc, sanitize, fmtSlot, fmtMalay, validateRequestForm } from './src/lib.js'
+import { esc, sanitize, fmtSlot, fmtMalay, validateRequestForm, buildWhatsAppFulfilLink, computeToDefaults } from './src/lib.js'
 import { registerPush, shouldShowPushButton } from './src/pwa.js'
 
 /* ── Supabase client ──────────────────────────────────── */
@@ -257,7 +270,7 @@ const SUPABASE_ANON = 'sb_publishable_dR6EUghM9WYXQ2B41mYYZQ_ussCN8tc'
 const VAPID_PUBLIC_KEY = 'BBDu9zgYklAeIuMTnoP1-4WJDvPhdVgozQSB2PIHUrdGJYOUesfyR1015PWElMibexLbPJLjv4oEUI77YbU_-f0'
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON)
-const auth     = createAuth(supabase, SUPABASE_URL)
+const auth     = createAuth(supabase)
 const db       = createDb(supabase)
 
 let currentSession = null
@@ -364,6 +377,13 @@ logoutBtn.addEventListener('click', async () => {
 })
 
 /* ── Form defaults ────────────────────────────────────── */
+function applyToDefaults(fromDate, fromTime) {
+  const { toDate, toTime } = computeToDefaults(fromDate, fromTime)
+  document.getElementById('f-to-date').value = toDate
+  document.getElementById('f-to-date').min   = fromDate
+  document.getElementById('f-to-time').value = toTime
+}
+
 function setFormDefaults() {
   const now = new Date()
   now.setMinutes(0, 0, 0)
@@ -372,10 +392,21 @@ function setFormDefaults() {
   const timeStr = `${pad(now.getHours())}:00`
   document.getElementById('f-from-date').value = dateStr
   document.getElementById('f-from-time').value = timeStr
-  const end = new Date(now.getTime() + 3600000)
-  document.getElementById('f-to-date').value = `${end.getFullYear()}-${pad(end.getMonth()+1)}-${pad(end.getDate())}`
-  document.getElementById('f-to-time').value  = `${pad(end.getHours())}:00`
+  applyToDefaults(dateStr, timeStr)
 }
+
+document.getElementById('f-from-date').addEventListener('change', () => {
+  const fromDate = document.getElementById('f-from-date').value
+  const fromTime = document.getElementById('f-from-time').value
+  if (fromDate && fromTime) applyToDefaults(fromDate, fromTime)
+  else if (fromDate) document.getElementById('f-to-date').min = fromDate
+})
+
+document.getElementById('f-from-time').addEventListener('change', () => {
+  const fromDate = document.getElementById('f-from-date').value
+  const fromTime = document.getElementById('f-from-time').value
+  if (fromDate && fromTime) applyToDefaults(fromDate, fromTime)
+})
 
 /* ── Picker tap ───────────────────────────────────────── */
 document.querySelectorAll('input[type="date"], input[type="time"]').forEach(input => {
@@ -485,6 +516,11 @@ function buildOpenCard(req) {
       <div class="fulfil-form space-y-3">
         <p class="text-sm text-slate-600">Anda akan menawarkan petak <strong class="font-bold text-slate-800">${esc(currentSession.user.user_metadata.bay)}</strong> kepada jiran ini.</p>
         <div class="fp-err hidden px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-semibold"></div>
+        <a href="${esc(buildWhatsAppFulfilLink(currentSession.user.user_metadata.phone, req.start_datetime, req.end_datetime))}"
+           target="_blank" rel="noopener noreferrer"
+           class="flex items-center justify-center gap-2 w-full min-h-[50px] py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold transition-colors">
+          💬 Hubungi via WhatsApp
+        </a>
         <button class="btn-confirm block w-full min-h-[50px] py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold cursor-pointer transition-colors"
                 data-id="${esc(req.id)}">Sahkan &amp; Bantu</button>
       </div>
@@ -539,7 +575,7 @@ async function cancelRequest(id) {
 async function renderList() {
   const [openList, closedList] = await Promise.all([
     db.fetchOpenRequests(),
-    db.fetchClosedRequests(),
+    db.fetchClosedRequests(currentSession.user.id),
   ])
 
   const listEl  = document.getElementById('request-list')
@@ -619,6 +655,46 @@ document.getElementById('toggle-closed-btn').addEventListener('click', () => {
   const isOpen = !closedEl.classList.contains('hidden')
   btn.setAttribute('aria-expanded', String(isOpen))
   btn.querySelector('.closed-caret').style.transform = isOpen ? 'rotate(180deg)' : ''
+})
+
+/* ── Feedback form ────────────────────────────────────── */
+document.getElementById('feedback-btn').addEventListener('click', async () => {
+  const msgEl  = document.getElementById('feedback-msg')
+  const errEl  = document.getElementById('feedback-err')
+  const okEl   = document.getElementById('feedback-ok')
+  const btn    = document.getElementById('feedback-btn')
+  const message = msgEl.value.trim()
+
+  errEl.classList.add('hidden')
+  okEl.classList.add('hidden')
+
+  if (!message) {
+    errEl.textContent = 'Sila tulis maklum balas sebelum menghantar.'
+    errEl.classList.remove('hidden')
+    return
+  }
+
+  btn.disabled = true
+  btn.textContent = 'Menghantar...'
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-feedback`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${currentSession.access_token}`,
+      },
+      body: JSON.stringify({ message }),
+    })
+    if (!res.ok) throw new Error('Ralat pelayan.')
+    msgEl.value = ''
+    okEl.classList.remove('hidden')
+  } catch (e) {
+    errEl.textContent = 'Gagal menghantar. Sila cuba lagi.'
+    errEl.classList.remove('hidden')
+  } finally {
+    btn.disabled = false
+    btn.textContent = 'Hantar Maklum Balas'
+  }
 })
 
 /* ── Privacy modal ────────────────────────────────────── */
