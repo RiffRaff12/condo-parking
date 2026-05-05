@@ -1,9 +1,14 @@
 import { validateRequestForm, validateFulfilForm } from '../src/lib.js'
 
+function daysFromNow(n) {
+  const d = new Date()
+  d.setDate(d.getDate() + n)
+  return d.toISOString().slice(0, 10)
+}
+
 const VALID_REQ = {
-  name: 'Ali', unit: '1-3-7', phone: '0123456789',
-  fromDate: '2026-04-27', fromTime: '14:00',
-  toDate: '2026-04-27', toTime: '15:00',
+  fromDate: daysFromNow(1), fromTime: '14:00',
+  toDate:   daysFromNow(1), toTime:   '15:00',
 }
 
 describe('validateRequestForm', () => {
@@ -12,17 +17,8 @@ describe('validateRequestForm', () => {
   })
   test('returns fromISO and toISO on success', () => {
     const r = validateRequestForm(VALID_REQ)
-    expect(r.fromISO).toBe('2026-04-27T14:00:00')
-    expect(r.toISO).toBe('2026-04-27T15:00:00')
-  })
-  test('errors when name is missing', () => {
-    expect(validateRequestForm({ ...VALID_REQ, name: '' }).ok).toBe(false)
-  })
-  test('errors when unit is missing', () => {
-    expect(validateRequestForm({ ...VALID_REQ, unit: '' }).ok).toBe(false)
-  })
-  test('errors when phone is missing', () => {
-    expect(validateRequestForm({ ...VALID_REQ, phone: '' }).ok).toBe(false)
+    expect(r.fromISO).toBe(`${daysFromNow(1)}T14:00:00`)
+    expect(r.toISO).toBe(`${daysFromNow(1)}T15:00:00`)
   })
   test('errors when fromDate is missing', () => {
     expect(validateRequestForm({ ...VALID_REQ, fromDate: '' }).ok).toBe(false)
@@ -37,7 +33,7 @@ describe('validateRequestForm', () => {
     expect(validateRequestForm({ ...VALID_REQ, toTime: '' }).ok).toBe(false)
   })
   test('missing-field error message is correct Malay text', () => {
-    const r = validateRequestForm({ ...VALID_REQ, name: '' })
+    const r = validateRequestForm({ ...VALID_REQ, fromDate: '' })
     expect(r.error).toBe('Sila isi semua ruangan sebelum menghantar.')
   })
   test('errors when to time equals from time', () => {
@@ -46,12 +42,24 @@ describe('validateRequestForm', () => {
     expect(r.error).toBe('Masa tamat mesti selepas masa mula.')
   })
   test('errors when to time is before from time', () => {
-    const r = validateRequestForm({ ...VALID_REQ, toTime: '13:00' })
-    expect(r.ok).toBe(false)
+    expect(validateRequestForm({ ...VALID_REQ, toTime: '13:00' }).ok).toBe(false)
   })
   test('accepts to datetime on a later date even if time is earlier', () => {
-    const r = validateRequestForm({ ...VALID_REQ, toDate: '2026-04-28', toTime: '08:00' })
+    const r = validateRequestForm({ ...VALID_REQ, toDate: daysFromNow(2), toTime: '08:00' })
     expect(r.ok).toBe(true)
+  })
+  test('accepts request exactly 3 days in advance', () => {
+    const r = validateRequestForm({ fromDate: daysFromNow(3), fromTime: '10:00', toDate: daysFromNow(3), toTime: '11:00' })
+    expect(r.ok).toBe(true)
+  })
+  test('rejects request more than 3 days in advance', () => {
+    const r = validateRequestForm({ fromDate: daysFromNow(4), fromTime: '10:00', toDate: daysFromNow(4), toTime: '11:00' })
+    expect(r.ok).toBe(false)
+    expect(r.error).toBe('Permintaan hanya boleh dibuat 3 hari ke hadapan.')
+  })
+  test('3-day rejection uses correct Malay text', () => {
+    const r = validateRequestForm({ fromDate: daysFromNow(10), fromTime: '09:00', toDate: daysFromNow(10), toTime: '10:00' })
+    expect(r.error).toBe('Permintaan hanya boleh dibuat 3 hari ke hadapan.')
   })
 })
 

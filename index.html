@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ParkitJiran</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script type="importmap">
+{
+  "imports": {
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
+  }
+}
+</script>
 <style>
   /* Full-box touch target for date/time pickers */
   .date-field, .time-field { position: relative; }
@@ -35,10 +42,56 @@
   <div class="text-4xl mb-2">🚗</div>
   <h1 class="text-2xl font-extrabold tracking-tight">ParkitJiran</h1>
   <p class="text-sm text-teal-100 mt-1.5 leading-relaxed">Parkir bersama jiran — mudah, cepat, percuma.</p>
+  <button id="logout-btn"
+    class="hidden mt-4 px-4 py-1.5 border border-teal-300 text-teal-100 text-xs font-semibold rounded-full hover:bg-teal-600 transition-colors">
+    Log Keluar
+  </button>
 </header>
 
-<!-- ═══ Main ══════════════════════════════════════════════ -->
-<main class="max-w-lg mx-auto px-4 pt-5 pb-16">
+<!-- ═══ Login view ════════════════════════════════════════ -->
+<div id="login-view" class="max-w-lg mx-auto px-4 pt-8 pb-16">
+  <p class="text-[11px] font-extrabold text-teal-700 uppercase tracking-widest mb-5 text-center">Log masuk untuk teruskan</p>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+    <div>
+      <label for="l-phone" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">No. Telefon</label>
+      <input type="tel" id="l-phone" placeholder="contoh: 0123456789" autocomplete="tel"
+        class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
+    </div>
+    <div>
+      <label for="l-unit" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">No. Unit</label>
+      <input type="text" id="l-unit" placeholder="contoh: 1-3-7" autocomplete="off"
+        class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
+    </div>
+    <div>
+      <label for="l-bay" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">No. Petak Parking</label>
+      <input type="text" id="l-bay" placeholder="contoh: B1-42" autocomplete="off"
+        class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
+    </div>
+
+    <div id="login-error"
+      class="hidden px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-semibold leading-snug"
+      role="alert"></div>
+
+    <button id="login-btn"
+      class="block w-full min-h-[52px] py-3.5 px-4 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white rounded-xl text-base font-bold cursor-pointer transition-colors">
+      Log Masuk
+    </button>
+  </div>
+</div>
+
+<!-- ═══ Main app view ══════════════════════════════════════ -->
+<main id="app-view" class="hidden max-w-lg mx-auto px-4 pt-5 pb-16">
+
+  <!-- Notifications banner -->
+  <div id="notif-banner" class="hidden mb-4 flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-slate-200">
+    <span class="text-lg">🔔</span>
+    <p class="text-xs text-slate-600 flex-1">Aktifkan notifikasi supaya anda tahu bila permintaan anda dipenuhi.</p>
+    <button id="notif-btn"
+      class="shrink-0 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer">
+      Aktif
+    </button>
+  </div>
 
   <!-- Toggle form button -->
   <button id="toggle-form-btn"
@@ -52,26 +105,10 @@
   <div id="form-card" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 mb-6 overflow-hidden"
     role="region" aria-label="Borang permintaan parkir">
     <div class="p-5">
-      <p class="text-[11px] font-extrabold text-teal-700 uppercase tracking-widest mb-5">Isi maklumat anda</p>
-
-      <div class="mb-4">
-        <label for="f-name" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Nama</label>
-        <input type="text" id="f-name" placeholder="contoh: Ahmad" autocomplete="name"
-          class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
-      </div>
-      <div class="mb-4">
-        <label for="f-unit" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">No. Unit</label>
-        <input type="text" id="f-unit" placeholder="contoh: 1-3-7" autocomplete="off"
-          class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
-      </div>
-      <div class="mb-2">
-        <label for="f-phone" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">No. Telefon</label>
-        <input type="tel" id="f-phone" placeholder="contoh: 0123456789" autocomplete="tel"
-          class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
-      </div>
+      <p class="text-[11px] font-extrabold text-teal-700 uppercase tracking-widest mb-5">Pilih masa yang anda perlukan</p>
 
       <!-- Start datetime -->
-      <div class="mt-5 mb-2.5 pb-2 border-b border-slate-100 flex items-center gap-2">
+      <div class="mb-2.5 pb-2 border-b border-slate-100 flex items-center gap-2">
         <span class="text-[11px] font-extrabold text-teal-700 uppercase tracking-widest">Tarikh &amp; Masa Mula</span>
       </div>
       <div class="grid grid-cols-2 gap-3 mb-2">
@@ -168,33 +205,28 @@
 
     <section class="mb-5">
       <h3 class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">2. Maklumat Yang Kami Kumpul</h3>
-      <p class="text-sm text-slate-600 leading-relaxed mb-2">Apabila anda membuat atau memenuhi permintaan parkir, anda mungkin memasukkan:</p>
-      <ul class="text-sm text-slate-600 leading-relaxed list-disc list-inside space-y-1">
-        <li>Nama penuh</li>
-        <li>Nombor unit kediaman</li>
-        <li>Nombor telefon</li>
-        <li>Nombor lot parking</li>
-      </ul>
+      <p class="text-sm text-slate-600 leading-relaxed mb-2">Semasa log masuk, kami mengesahkan identiti anda menggunakan nombor telefon, unit, dan petak parking anda. Maklumat ini tidak disimpan dalam permintaan parking.</p>
+      <p class="text-sm text-slate-600 leading-relaxed">Bagi setiap permintaan parking, hanya masa mula dan masa tamat yang diperlukan disimpan.</p>
     </section>
 
     <section class="mb-5">
       <h3 class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">3. Bagaimana Data Disimpan</h3>
-      <p class="text-sm text-slate-600 leading-relaxed">Buat masa ini, <strong class="font-semibold text-slate-700">semua maklumat disimpan secara tempatan</strong> dalam penyimpanan pelayar anda (<code class="bg-slate-100 px-1 rounded text-xs">localStorage</code>) sahaja. Tiada data dihantar ke mana-mana pelayan atau awan. Data hanya wujud pada peranti yang anda gunakan semasa ini.</p>
+      <p class="text-sm text-slate-600 leading-relaxed">Data permintaan disimpan secara selamat di pelayan awan Supabase, dilindungi oleh kawalan akses baris-demi-baris (RLS). Hanya pengguna yang telah disahkan boleh membaca dan mengubah data mereka sendiri.</p>
     </section>
 
     <section class="mb-5">
       <h3 class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">4. Penggunaan Data</h3>
-      <p class="text-sm text-slate-600 leading-relaxed">Data anda digunakan semata-mata untuk menjana pautan WhatsApp supaya jiran-jiran boleh berhubung terus antara satu sama lain. Tiada maklumat diproses atau disimpan di luar peranti anda.</p>
+      <p class="text-sm text-slate-600 leading-relaxed">Data anda digunakan semata-mata untuk memadankan permintaan parking antara jiran-jiran dalam komuniti anda. Tiada maklumat peribadi seperti nama, nombor telefon, atau unit didedahkan dalam senarai awam.</p>
     </section>
 
     <section class="mb-5">
       <h3 class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">5. Perkongsian Data</h3>
-      <p class="text-sm text-slate-600 leading-relaxed">Kami <strong class="font-semibold text-slate-700">tidak berkongsi, menjual, atau memindahkan</strong> data anda kepada mana-mana pihak ketiga. Pautan WhatsApp dijana secara tempatan dan komunikasi seterusnya adalah antara pengguna sahaja.</p>
+      <p class="text-sm text-slate-600 leading-relaxed">Kami <strong class="font-semibold text-slate-700">tidak berkongsi, menjual, atau memindahkan</strong> data anda kepada mana-mana pihak ketiga.</p>
     </section>
 
     <section class="mb-5">
       <h3 class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">6. Hak Anda</h3>
-      <p class="text-sm text-slate-600 leading-relaxed">Anda boleh memadam semua data pada bila-bila masa melalui tetapan pelayar anda: <span class="font-medium text-slate-700">Tetapan → Privasi → Kosongkan Data Tapak</span>. Semua rekod akan dipadam sepenuhnya dari peranti anda.</p>
+      <p class="text-sm text-slate-600 leading-relaxed">Anda boleh membatalkan permintaan anda pada bila-bila masa melalui apl ini. Untuk pemadaman akaun sepenuhnya, hubungi pentadbir komuniti anda.</p>
     </section>
 
     <section class="mb-6">
@@ -209,109 +241,221 @@
   </div>
 </div>
 
-<!-- WA SVG symbol -->
-<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
-  <symbol id="wa-icon" viewBox="0 0 24 24">
-    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-    <path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.554 4.103 1.523 5.824L.057 23.272a.75.75 0 0 0 .916.916l5.448-1.466A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.714 9.714 0 0 1-4.946-1.349l-.355-.211-3.676.99.99-3.607-.228-.371A9.714 9.714 0 0 1 2.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"/>
-  </symbol>
-</svg>
-
 <script type="module">
-import { uuid, esc, sanitize, loadRequests, saveRequests, waPhone, fmtMalay, fmtSlot,
-         validateRequestForm, validateFulfilForm } from './src/lib.js';
+import { createClient } from '@supabase/supabase-js'
+import { createAuth } from './src/auth.js'
+import { createDb }   from './src/db.js'
+import { esc, sanitize, fmtSlot, fmtMalay, validateRequestForm } from './src/lib.js'
+import { registerPush, shouldShowPushButton } from './src/pwa.js'
+
+/* ── Supabase client ──────────────────────────────────── */
+// TODO: replace with your project's URL and anon key
+const SUPABASE_URL  = 'https://hmfpdpdovzkdhbwolgxy.supabase.co'
+const SUPABASE_ANON = 'sb_publishable_dR6EUghM9WYXQ2B41mYYZQ_ussCN8tc'
+
+// TODO: replace with your VAPID public key (generate with: npx web-push generate-vapid-keys)
+const VAPID_PUBLIC_KEY = 'BBDu9zgYklAeIuMTnoP1-4WJDvPhdVgozQSB2PIHUrdGJYOUesfyR1015PWElMibexLbPJLjv4oEUI77YbU_-f0'
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON)
+const auth     = createAuth(supabase, SUPABASE_URL)
+const db       = createDb(supabase)
+
+let currentSession = null
+let swRegistration = null
+
+/* ── Service worker ───────────────────────────────────── */
+async function registerSW() {
+  if (!('serviceWorker' in navigator)) return
+  swRegistration = await navigator.serviceWorker.register('/sw.js')
+}
+
+/* ── Push notifications ───────────────────────────────── */
+async function setupNotifications() {
+  if (!shouldShowPushButton()) return
+  if (Notification.permission === 'granted') return
+
+  const banner  = document.getElementById('notif-banner')
+  const notifBtn = document.getElementById('notif-btn')
+  banner.classList.remove('hidden')
+
+  notifBtn.addEventListener('click', async () => {
+    if (!swRegistration) return
+    notifBtn.disabled = true
+    notifBtn.textContent = 'Menunggu...'
+    const result = await registerPush({
+      requestPermission: () => Notification.requestPermission(),
+      registration: swRegistration,
+      vapidKey: VAPID_PUBLIC_KEY,
+      db,
+      userId: currentSession.user.id,
+    })
+    if (result.granted) {
+      banner.classList.add('hidden')
+    } else {
+      notifBtn.disabled = false
+      notifBtn.textContent = 'Aktif'
+    }
+  })
+}
+
+async function notifyFulfilled(requestId) {
+  if (!currentSession) return
+  fetch(`${SUPABASE_URL}/functions/v1/notify-push`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${currentSession.access_token}`,
+    },
+    body: JSON.stringify({ request_id: requestId, event: 'fulfilled' }),
+  }).catch(() => {})
+}
+
+/* ── Views ────────────────────────────────────────────── */
+const loginView = document.getElementById('login-view')
+const appView   = document.getElementById('app-view')
+const logoutBtn = document.getElementById('logout-btn')
+
+function showLogin() {
+  loginView.classList.remove('hidden')
+  appView.classList.add('hidden')
+  logoutBtn.classList.add('hidden')
+}
+
+function showApp() {
+  loginView.classList.add('hidden')
+  appView.classList.remove('hidden')
+  logoutBtn.classList.remove('hidden')
+  setupNotifications()
+}
+
+/* ── Login ────────────────────────────────────────────── */
+const loginErrEl = document.getElementById('login-error')
+const loginBtn   = document.getElementById('login-btn')
+
+loginBtn.addEventListener('click', async () => {
+  loginErrEl.classList.add('hidden')
+  const phone = sanitize(document.getElementById('l-phone').value, 20)
+  const unit  = sanitize(document.getElementById('l-unit').value, 20)
+  const bay   = sanitize(document.getElementById('l-bay').value, 20)
+  if (!phone || !unit || !bay) {
+    loginErrEl.textContent = 'Sila isi semua ruangan.'
+    loginErrEl.classList.remove('hidden')
+    return
+  }
+  loginBtn.disabled = true
+  loginBtn.textContent = 'Sedang mengesahkan...'
+  try {
+    currentSession = await auth.verifyAndSignIn({ phone, unit, bay })
+    showApp()
+    await renderList()
+  } catch (e) {
+    loginErrEl.textContent = e.message
+    loginErrEl.classList.remove('hidden')
+    loginBtn.disabled = false
+    loginBtn.textContent = 'Log Masuk'
+  }
+})
+
+/* ── Logout ───────────────────────────────────────────── */
+logoutBtn.addEventListener('click', async () => {
+  await auth.signOut()
+  currentSession = null
+  showLogin()
+})
 
 /* ── Form defaults ────────────────────────────────────── */
 function setFormDefaults() {
-  const now = new Date();
-  now.setMinutes(0, 0, 0);
-  const pad = n => String(n).padStart(2, '0');
-  const dateStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
-  const timeStr = `${pad(now.getHours())}:00`;
-  document.getElementById('f-from-date').value = dateStr;
-  document.getElementById('f-from-time').value = timeStr;
-  const end = new Date(now.getTime() + 3600000);
-  document.getElementById('f-to-date').value = `${end.getFullYear()}-${pad(end.getMonth()+1)}-${pad(end.getDate())}`;
-  document.getElementById('f-to-time').value = `${pad(end.getHours())}:00`;
+  const now = new Date()
+  now.setMinutes(0, 0, 0)
+  const pad = n => String(n).padStart(2, '0')
+  const dateStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`
+  const timeStr = `${pad(now.getHours())}:00`
+  document.getElementById('f-from-date').value = dateStr
+  document.getElementById('f-from-time').value = timeStr
+  const end = new Date(now.getTime() + 3600000)
+  document.getElementById('f-to-date').value = `${end.getFullYear()}-${pad(end.getMonth()+1)}-${pad(end.getDate())}`
+  document.getElementById('f-to-time').value  = `${pad(end.getHours())}:00`
 }
 
 /* ── Picker tap ───────────────────────────────────────── */
-function wirePickerTap() {
-  document.querySelectorAll('input[type="date"], input[type="time"]').forEach(input => {
-    input.addEventListener('click', function () {
-      if (typeof this.showPicker === 'function') {
-        try { this.showPicker(); } catch (_) {}
-      }
-    });
-  });
-}
+document.querySelectorAll('input[type="date"], input[type="time"]').forEach(input => {
+  input.addEventListener('click', function () {
+    if (typeof this.showPicker === 'function') {
+      try { this.showPicker() } catch (_) {}
+    }
+  })
+})
 
 /* ── Form toggle ──────────────────────────────────────── */
-const toggleBtn = document.getElementById('toggle-form-btn');
-const formCard  = document.getElementById('form-card');
+const toggleBtn = document.getElementById('toggle-form-btn')
+const formCard  = document.getElementById('form-card')
 
 toggleBtn.addEventListener('click', () => {
-  formCard.classList.toggle('hidden');
-  const isOpen = !formCard.classList.contains('hidden');
-  toggleBtn.setAttribute('aria-expanded', String(isOpen));
-  toggleBtn.querySelector('.icon').style.transform = isOpen ? 'rotate(45deg)' : '';
-  document.getElementById('form-error').classList.add('hidden');
-  document.getElementById('form-success').classList.add('hidden');
-  if (isOpen) { setFormDefaults(); document.getElementById('f-name').focus(); }
-});
+  formCard.classList.toggle('hidden')
+  const isOpen = !formCard.classList.contains('hidden')
+  toggleBtn.setAttribute('aria-expanded', String(isOpen))
+  toggleBtn.querySelector('.icon').style.transform = isOpen ? 'rotate(45deg)' : ''
+  document.getElementById('form-error').classList.add('hidden')
+  document.getElementById('form-success').classList.add('hidden')
+  if (isOpen) { setFormDefaults(); document.getElementById('f-from-date').focus() }
+})
 
 /* ── Form submit ──────────────────────────────────────── */
-const errEl = document.getElementById('form-error');
-const sucEl = document.getElementById('form-success');
+const errEl    = document.getElementById('form-error')
+const sucEl    = document.getElementById('form-success')
+const submitBtn = document.getElementById('submit-btn')
 
 function showFormError(msg) {
-  errEl.textContent = msg;
-  errEl.classList.remove('hidden');
-  sucEl.classList.add('hidden');
+  errEl.textContent = msg
+  errEl.classList.remove('hidden')
+  sucEl.classList.add('hidden')
 }
 
-document.getElementById('submit-btn').addEventListener('click', () => {
-  errEl.classList.add('hidden');
+submitBtn.addEventListener('click', async () => {
+  errEl.classList.add('hidden')
+  const fromDate = document.getElementById('f-from-date').value
+  const fromTime = document.getElementById('f-from-time').value
+  const toDate   = document.getElementById('f-to-date').value
+  const toTime   = document.getElementById('f-to-time').value
 
-  const name     = sanitize(document.getElementById('f-name').value, 100);
-  const unit     = sanitize(document.getElementById('f-unit').value, 20);
-  const phone    = sanitize(document.getElementById('f-phone').value, 20);
-  const fromDate = document.getElementById('f-from-date').value;
-  const fromTime = document.getElementById('f-from-time').value;
-  const toDate   = document.getElementById('f-to-date').value;
-  const toTime   = document.getElementById('f-to-time').value;
+  const validation = validateRequestForm({ fromDate, fromTime, toDate, toTime })
+  if (!validation.ok) { showFormError(validation.error); return }
+  const { fromISO, toISO } = validation
 
-  const validation = validateRequestForm({ name, unit, phone, fromDate, fromTime, toDate, toTime });
-  if (!validation.ok) { showFormError(validation.error); return; }
-  const { fromISO, toISO } = validation;
-
-  const list = loadRequests();
-  list.unshift({ id: uuid(), name, unit, phone, from_datetime: fromISO, to_datetime: toISO,
-    status: 'open', fulfilled_by: null, created_at: new Date().toISOString() });
-  saveRequests(list);
-
-  ['f-name','f-unit','f-phone'].forEach(id => { document.getElementById(id).value = ''; });
-  sucEl.classList.remove('hidden');
-
-  setTimeout(() => {
-    formCard.classList.add('hidden');
-    toggleBtn.setAttribute('aria-expanded', 'false');
-    toggleBtn.querySelector('.icon').style.transform = '';
-    sucEl.classList.add('hidden');
-  }, 1800);
-
-  renderList();
-});
+  submitBtn.disabled = true
+  submitBtn.textContent = 'Menghantar...'
+  try {
+    await db.createRequest({
+      requester_id:   currentSession.user.id,
+      start_datetime: fromISO,
+      end_datetime:   toISO,
+    })
+    sucEl.classList.remove('hidden')
+    setTimeout(() => {
+      formCard.classList.add('hidden')
+      toggleBtn.setAttribute('aria-expanded', 'false')
+      toggleBtn.querySelector('.icon').style.transform = ''
+      sucEl.classList.add('hidden')
+    }, 1800)
+    await renderList()
+  } catch (e) {
+    showFormError('Ralat: ' + e.message)
+  } finally {
+    submitBtn.disabled = false
+    submitBtn.textContent = 'Hantar Permintaan'
+  }
+})
 
 /* ── Shared class strings for dynamic cards ───────────── */
-const INPUT = 'block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10';
-const LABEL = 'block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5';
+const INPUT = 'block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10'
+const LABEL = 'block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5'
 
 /* ── Build open card ──────────────────────────────────── */
 function buildOpenCard(req) {
-  const card = document.createElement('div');
-  card.className = 'bg-white rounded-2xl shadow-sm mb-2 overflow-hidden border border-slate-200 hover:border-teal-300 hover:shadow transition-all req-card';
-  card.dataset.id = req.id;
+  const isMine = currentSession && req.requester_id === currentSession.user.id
+  const card = document.createElement('div')
+  card.className = 'bg-white rounded-2xl shadow-sm mb-2 overflow-hidden border border-slate-200 hover:border-teal-300 hover:shadow transition-all req-card'
+  card.dataset.id = req.id
   card.innerHTML = `
     <div class="p-3">
       <div class="flex justify-between items-start mb-2.5">
@@ -327,174 +471,175 @@ function buildOpenCard(req) {
             <div class="text-xs font-semibold text-slate-500">${t.dow} ${t.date}</div>
             <div class="text-sm font-bold text-slate-800">${t.time}</div>
           </div>
-        `)([fmtSlot(req.from_datetime), fmtSlot(req.to_datetime)])}
+        `)([fmtSlot(req.start_datetime), fmtSlot(req.end_datetime)])}
       </div>
-      <div class="mb-2">
-        <span class="text-[11px] text-slate-400 font-semibold">${esc(req.name)} · Unit ${esc(req.unit)}</span>
-      </div>
-      <div>
-        <button class="btn-help w-full min-h-[40px] px-3 py-2 bg-teal-50 text-teal-700 border border-teal-200 rounded-xl text-sm font-bold cursor-pointer whitespace-nowrap transition-all hover:bg-teal-100"
-                data-id="${esc(req.id)}">🙋 Saya Boleh Bantu</button>
-      </div>
+      ${isMine
+        ? `<button class="btn-cancel w-full min-h-[40px] px-3 py-2 bg-slate-50 text-slate-500 border border-slate-200 rounded-xl text-sm font-bold cursor-pointer whitespace-nowrap transition-all hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                   data-id="${esc(req.id)}">Batalkan Permintaan</button>`
+        : `<button class="btn-help w-full min-h-[40px] px-3 py-2 bg-teal-50 text-teal-700 border border-teal-200 rounded-xl text-sm font-bold cursor-pointer whitespace-nowrap transition-all hover:bg-teal-100"
+                   data-id="${esc(req.id)}">🙋 Saya Boleh Bantu</button>`
+      }
     </div>
+    ${!isMine ? `
     <div class="fulfil-panel hidden border-t border-slate-100 p-4 bg-teal-50/60" id="fp-${esc(req.id)}">
-      <p class="text-[11px] font-extrabold text-teal-700 uppercase tracking-widest mb-4">Maklumat anda sebagai pembantu</p>
       <div class="fulfil-form space-y-3">
-        <div>
-          <label class="${LABEL}">Nama</label>
-          <input type="text" class="fp-name ${INPUT}" placeholder="contoh: Siti" autocomplete="name">
-        </div>
-        <div>
-          <label class="${LABEL}">No. Unit</label>
-          <input type="text" class="fp-unit ${INPUT}" placeholder="contoh: 2-1-15" autocomplete="off">
-        </div>
-        <div>
-          <label class="${LABEL}">No. Telefon</label>
-          <input type="tel" class="fp-phone ${INPUT}" placeholder="contoh: 0123456789" autocomplete="tel">
-        </div>
-        <div>
-          <label class="${LABEL}">No. Lot Parking</label>
-          <input type="text" class="fp-bay ${INPUT}" placeholder="contoh: B1-42" autocomplete="off">
-        </div>
+        <p class="text-sm text-slate-600">Anda akan menawarkan petak <strong class="font-bold text-slate-800">${esc(currentSession.user.user_metadata.bay)}</strong> kepada jiran ini.</p>
         <div class="fp-err hidden px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-semibold"></div>
         <button class="btn-confirm block w-full min-h-[50px] py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold cursor-pointer transition-colors"
                 data-id="${esc(req.id)}">Sahkan &amp; Bantu</button>
       </div>
       <div class="fulfil-success hidden bg-white rounded-xl border border-teal-200 p-5 text-center" id="fs-${esc(req.id)}">
-        <p class="fs-msg text-sm text-slate-700 leading-relaxed mb-4"></p>
-        <a class="inline-flex w-full items-center justify-center gap-2 min-h-[50px] px-4 py-3 bg-[#25d366] hover:bg-[#1ebe59] text-white rounded-xl text-base font-bold no-underline transition-colors"
-           target="_blank" rel="noopener noreferrer">
-          <svg class="w-[17px] h-[17px] fill-white shrink-0"><use href="#wa-icon"/></svg>Buka WhatsApp
-        </a>
+        <p class="fs-msg text-sm text-slate-700 leading-relaxed"></p>
       </div>
-    </div>`;
-  return card;
+    </div>` : ''}
+  `
+  return card
 }
 
 /* ── Confirm fulfil ───────────────────────────────────── */
-function confirmFulfil(id) {
-  const panel    = document.getElementById(`fp-${id}`);
-  const errMsgEl = panel.querySelector('.fp-err');
-  errMsgEl.classList.add('hidden');
+async function confirmFulfil(id) {
+  const panel    = document.getElementById(`fp-${id}`)
+  const errMsgEl = panel.querySelector('.fp-err')
+  errMsgEl.classList.add('hidden')
 
-  const fName  = sanitize(panel.querySelector('.fp-name').value, 100);
-  const fUnit  = sanitize(panel.querySelector('.fp-unit').value, 20);
-  const fPhone = sanitize(panel.querySelector('.fp-phone').value, 20);
-  const fBay   = sanitize(panel.querySelector('.fp-bay').value, 20);
+  const fBay = currentSession.user.user_metadata.bay
 
-  const fv = validateFulfilForm({ fName, fUnit, fPhone, fBay });
-  if (!fv.ok) { errMsgEl.textContent = fv.error; errMsgEl.classList.remove('hidden'); return; }
+  const confirmBtn = panel.querySelector('.btn-confirm')
+  confirmBtn.disabled = true
+  confirmBtn.textContent = 'Menghantar...'
+  try {
+    await db.fulfillRequest(id, { fulfiller_id: currentSession.user.id, fulfiller_bay: fBay })
+    notifyFulfilled(id)
+    panel.querySelector('.fulfil-form').classList.add('hidden')
+    const successDiv = document.getElementById(`fs-${id}`)
+    successDiv.classList.remove('hidden')
+    successDiv.querySelector('.fs-msg').textContent = `Terima kasih! Anda telah menawarkan Petak ${fBay}. Pemilik permintaan akan dimaklumkan.`
+    setTimeout(() => renderList(), 3200)
+  } catch (e) {
+    errMsgEl.textContent = e.message === 'RACE_CONDITION'
+      ? 'Permintaan ini telah dipenuhi oleh orang lain.'
+      : 'Ralat: ' + e.message
+    errMsgEl.classList.remove('hidden')
+    confirmBtn.disabled = false
+    confirmBtn.textContent = 'Sahkan & Bantu'
+  }
+}
 
-  const list = loadRequests();
-  const req  = list.find(r => r.id === id);
-  if (!req) return;
-
-  req.status       = 'fulfilled';
-  req.fulfilled_by = { name: fName, unit: fUnit, phone: fPhone, bay: fBay };
-  saveRequests(list);
-
-  panel.querySelector('.fulfil-form').classList.add('hidden');
-  const successDiv = document.getElementById(`fs-${id}`);
-  successDiv.classList.remove('hidden');
-  successDiv.querySelector('.fs-msg').textContent =
-    `Terima kasih ${fName}! Hubungi ${req.name} di WhatsApp untuk urusan lanjut.`;
-  successDiv.querySelector('a').href = `https://wa.me/${waPhone(req.phone)}`;
-
-  setTimeout(() => renderList(), 3200);
+/* ── Cancel request ───────────────────────────────────── */
+async function cancelRequest(id) {
+  try {
+    await db.cancelRequest(id, currentSession.user.id)
+    await renderList()
+  } catch (e) {
+    alert('Ralat semasa membatalkan: ' + e.message)
+  }
 }
 
 /* ── Render open list ─────────────────────────────────── */
-function renderList() {
-  const all      = loadRequests();
-  const openList = all.filter(r => r.status === 'open');
-  const listEl   = document.getElementById('request-list');
-  const emptyEl  = document.getElementById('empty-state');
+async function renderList() {
+  const [openList, closedList] = await Promise.all([
+    db.fetchOpenRequests(),
+    db.fetchClosedRequests(),
+  ])
 
-  listEl.innerHTML = '';
-  emptyEl.classList.toggle('hidden', openList.length > 0);
+  const listEl  = document.getElementById('request-list')
+  const emptyEl = document.getElementById('empty-state')
 
-  openList.forEach(req => listEl.appendChild(buildOpenCard(req)));
+  listEl.innerHTML = ''
+  emptyEl.classList.toggle('hidden', openList.length > 0)
+
+  openList.forEach(req => listEl.appendChild(buildOpenCard(req)))
 
   listEl.querySelectorAll('.btn-help').forEach(btn => {
     btn.addEventListener('click', () => {
-      const panel = document.getElementById(`fp-${btn.dataset.id}`);
-      panel.classList.toggle('hidden');
-      const open = !panel.classList.contains('hidden');
-      btn.classList.toggle('active', open);
-      if (open) panel.querySelector('.fp-name').focus();
-    });
-  });
+      const panel = document.getElementById(`fp-${btn.dataset.id}`)
+      panel.classList.toggle('hidden')
+      const open = !panel.classList.contains('hidden')
+      btn.classList.toggle('active', open)
+      if (open) panel.querySelector('.fp-bay').focus()
+    })
+  })
 
   listEl.querySelectorAll('.btn-confirm').forEach(btn => {
-    btn.addEventListener('click', () => confirmFulfil(btn.dataset.id));
-  });
+    btn.addEventListener('click', () => confirmFulfil(btn.dataset.id))
+  })
 
-  renderClosedList(all);
+  listEl.querySelectorAll('.btn-cancel').forEach(btn => {
+    btn.addEventListener('click', () => cancelRequest(btn.dataset.id))
+  })
+
+  renderClosedList(closedList)
 }
 
 /* ── Render closed list ───────────────────────────────── */
-function renderClosedList(all) {
-  const closedList = (all || loadRequests()).filter(r => r.status === 'fulfilled');
-  const closedEl   = document.getElementById('closed-list');
+function renderClosedList(closedList) {
+  const closedEl = document.getElementById('closed-list')
 
   document.getElementById('closed-btn-label').textContent =
-    `Permintaan Tutup${closedList.length ? ` (${closedList.length})` : ''}`;
+    `Permintaan Tutup${closedList.length ? ` (${closedList.length})` : ''}`
 
-  closedEl.innerHTML = '';
+  closedEl.innerHTML = ''
 
   if (closedList.length === 0) {
     closedEl.innerHTML = `
       <div class="text-center py-8 px-4 text-sm text-slate-400 bg-white rounded-2xl border border-slate-100">
         Belum ada permintaan yang diselesaikan.
-      </div>`;
-    return;
+      </div>`
+    return
   }
 
   closedList.forEach(req => {
-    const fb   = req.fulfilled_by;
-    const card = document.createElement('div');
-    card.className = 'bg-white rounded-xl mb-2.5 border border-slate-100 px-4 py-3.5 opacity-80';
+    const statusLabel = req.status === 'resolved'   ? '✓ Selesai'
+                      : req.status === 'cancelled'  ? '✕ Dibatalkan'
+                      : '⏱ Tamat'
+    const statusClass = req.status === 'resolved'   ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                      : req.status === 'cancelled'  ? 'bg-slate-50 text-slate-500 border-slate-200'
+                      : 'bg-amber-50 text-amber-700 border-amber-100'
+    const card = document.createElement('div')
+    card.className = 'bg-white rounded-xl mb-2.5 border border-slate-100 px-4 py-3.5 opacity-80'
     card.innerHTML = `
       <div class="flex items-start justify-between gap-3 mb-2">
-        <div>
-          <div class="text-sm font-bold text-slate-500">${esc(req.name)}</div>
-          <div class="text-xs text-slate-400 mt-0.5">Unit ${esc(req.unit)}</div>
+        <div class="text-xs text-slate-400 leading-relaxed">
+          ${fmtMalay(req.start_datetime)}<span class="mx-1.5 opacity-40">→</span>${fmtMalay(req.end_datetime)}
         </div>
-        <span class="shrink-0 bg-emerald-50 text-emerald-700 text-[11px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap border border-emerald-100">✓ Selesai</span>
+        <span class="shrink-0 text-[11px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap border ${statusClass}">${statusLabel}</span>
       </div>
-      <div class="text-xs text-slate-400 leading-relaxed mb-2.5">
-        ${fmtMalay(req.from_datetime)}<span class="mx-1.5 opacity-40">→</span>${fmtMalay(req.to_datetime)}
-      </div>
-      ${fb ? `<div class="text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2 leading-relaxed border border-slate-100">
-        Dibantu oleh <strong class="font-semibold">${esc(fb.name)}</strong> (Unit ${esc(fb.unit)}) · Lot <strong class="font-semibold">${esc(fb.bay)}</strong>
-      </div>` : ''}`;
-    closedEl.appendChild(card);
-  });
+      ${req.fulfiller_bay ? `<div class="text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
+        Petak yang ditawarkan: <strong class="font-semibold">${esc(req.fulfiller_bay)}</strong>
+      </div>` : ''}`
+    closedEl.appendChild(card)
+  })
 }
 
 /* ── Closed section toggle ────────────────────────────── */
 document.getElementById('toggle-closed-btn').addEventListener('click', () => {
-  const btn      = document.getElementById('toggle-closed-btn');
-  const closedEl = document.getElementById('closed-list');
-  closedEl.classList.toggle('hidden');
-  const isOpen = !closedEl.classList.contains('hidden');
-  btn.setAttribute('aria-expanded', String(isOpen));
-  btn.querySelector('.closed-caret').style.transform = isOpen ? 'rotate(180deg)' : '';
-});
-
-/* ── Init ─────────────────────────────────────────────── */
-wirePickerTap();
-renderList();
+  const btn      = document.getElementById('toggle-closed-btn')
+  const closedEl = document.getElementById('closed-list')
+  closedEl.classList.toggle('hidden')
+  const isOpen = !closedEl.classList.contains('hidden')
+  btn.setAttribute('aria-expanded', String(isOpen))
+  btn.querySelector('.closed-caret').style.transform = isOpen ? 'rotate(180deg)' : ''
+})
 
 /* ── Privacy modal ────────────────────────────────────── */
-const privacyModal = document.getElementById('modal-privacy');
-function openPrivacy()  { privacyModal.classList.remove('hidden'); privacyModal.focus(); }
-function closePrivacy() { privacyModal.classList.add('hidden'); }
-document.getElementById('btn-privacy').addEventListener('click', openPrivacy);
-document.getElementById('btn-privacy-close').addEventListener('click', closePrivacy);
-document.getElementById('btn-privacy-close-bottom').addEventListener('click', closePrivacy);
-privacyModal.addEventListener('click', e => { if (e.target === privacyModal) closePrivacy(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closePrivacy(); });
+const privacyModal = document.getElementById('modal-privacy')
+function openPrivacy()  { privacyModal.classList.remove('hidden'); privacyModal.focus() }
+function closePrivacy() { privacyModal.classList.add('hidden') }
+document.getElementById('btn-privacy').addEventListener('click', openPrivacy)
+document.getElementById('btn-privacy-close').addEventListener('click', closePrivacy)
+document.getElementById('btn-privacy-close-bottom').addEventListener('click', closePrivacy)
+privacyModal.addEventListener('click', e => { if (e.target === privacyModal) closePrivacy() })
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePrivacy() })
+
+/* ── Init ─────────────────────────────────────────────── */
+async function init() {
+  await registerSW()
+  currentSession = await auth.getSession()
+  if (currentSession) { showApp(); await renderList() }
+  else showLogin()
+}
+
+init()
 </script>
 </body>
 </html>

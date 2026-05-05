@@ -54,18 +54,69 @@ export function fmtSlot(iso) {
 }
 
 /* ── Validation helpers ───────────────────────────────── */
-export function validateRequestForm({ name, unit, phone, fromDate, fromTime, toDate, toTime }) {
-  if (!name || !unit || !phone || !fromDate || !fromTime || !toDate || !toTime)
+export function validateRequestForm({ fromDate, fromTime, toDate, toTime }) {
+  if (!fromDate || !fromTime || !toDate || !toTime)
     return { ok: false, error: 'Sila isi semua ruangan sebelum menghantar.' };
   const fromISO = `${fromDate}T${fromTime}:00`;
   const toISO   = `${toDate}T${toTime}:00`;
   if (new Date(toISO) <= new Date(fromISO))
     return { ok: false, error: 'Masa tamat mesti selepas masa mula.' };
+  const limitMs = 3 * 24 * 60 * 60 * 1000;
+  if (new Date(fromISO) - Date.now() > limitMs)
+    return { ok: false, error: 'Permintaan hanya boleh dibuat 3 hari ke hadapan.' };
   return { ok: true, fromISO, toISO };
 }
 
-export function validateFulfilForm({ fName, fUnit, fPhone, fBay }) {
-  if (!fName || !fUnit || !fPhone || !fBay)
-    return { ok: false, error: 'Sila isi semua ruangan.' };
+export function buildFulfillmentMessage(bay) {
+  return `Permintaan anda telah dipenuhi! Jiran anda menawarkan petak ${bay}.`
+}
+
+export function shouldShowCancelButton(request, userId) {
+  return request.requester_id === userId && request.status !== 'cancelled'
+}
+
+export function buildRevocationMessage(bay) {
+  return `Alert: Jiran anda terpaksa menarik balik tawaran Petak ${bay}. Permintaan anda telah diletakkan semula di papan!`
+}
+
+export function shouldShowRevokeButton(request, userId) {
+  return request.fulfiller_id === userId && request.status === 'resolved'
+}
+
+export function buildExpiryMessage() {
+  return 'Heads up: Tiada jiran yang dapat membantu permintaan anda. Ia telah dibuang. Sila buat peraturan lain.'
+}
+
+export function buildDailyDigestMessage(count) {
+  return `Terdapat ${count} jiran yang memerlukan parking dalam beberapa hari ini. Ketik untuk membantu!`
+}
+
+export function buildCommitmentPingMessage(bay) {
+  return `Peringatan: Anda telah menawarkan Petak ${bay} hari ini. Sila pastikan ia kosong!`
+}
+
+export function buildWhatsAppLink(phone) {
+  return `https://wa.me/${waPhone(phone)}`
+}
+
+export function buildParkingPass({ fulfiller_bay, start_datetime, end_datetime, fulfiller_phone, requester_phone }) {
+  return {
+    bay:              fulfiller_bay,
+    startFormatted:   fmtMalay(start_datetime),
+    endFormatted:     fmtMalay(end_datetime),
+    fulfillerWaLink:  buildWhatsAppLink(fulfiller_phone),
+    requesterWaLink:  buildWhatsAppLink(requester_phone),
+  }
+}
+
+export function validateOnboardingForm({ phone, unit, bay }) {
+  if (!phone || !unit || !bay)
+    return { ok: false, error: 'Sila isi nombor telefon, unit, dan petak parkir anda.' };
+  return { ok: true };
+}
+
+export function validateFulfilForm({ fBay }) {
+  if (!fBay)
+    return { ok: false, error: 'Sila isi nombor lot parking anda.' };
   return { ok: true };
 }
