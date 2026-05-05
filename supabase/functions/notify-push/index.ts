@@ -24,6 +24,14 @@ const MESSAGES: Record<string, { title: string; body: string }> = {
     title: 'Permintaan anda dipenuhi!',
     body: 'Jiran anda telah menawarkan petak parking.',
   },
+  revoked: {
+    title: 'Tawaran ditarik balik',
+    body: 'Jiran anda terpaksa menarik balik tawaran. Permintaan anda masih terbuka.',
+  },
+  requester_cancelled: {
+    title: 'Permintaan dibatalkan',
+    body: 'Jiran yang meminta telah membatalkan permintaan. Terima kasih kerana membantu!',
+  },
 }
 
 Deno.serve(async (req) => {
@@ -49,29 +57,42 @@ Deno.serve(async (req) => {
 
   const { data: request, error: reqErr } = await admin
     .from('requests')
-    .select('requester_id')
+    .select('requester_id, fulfiller_id')
     .eq('id', request_id)
     .single()
   if (reqErr || !request) return json({ error: 'Not found' }, 404)
 
-  if (request.requester_id === user.id) return json({ sent: false })
+  let recipientId: string | null
+  if (event === 'requester_cancelled') {
+    if (request.requester_id !== user.id) return json({ error: 'Unauthorized' }, 401)
+    recipientId = request.fulfiller_id
+  } else {
+    if (request.requester_id === user.id) return json({ error: 'Unauthorized' }, 401)
+    recipientId = request.requester_id
+  }
 
-  const { data: sub } = await admin
+  if (!recipientId) return json({ sent: false })
+
+  const { data: subs } = await admin
     .from('push_subscriptions')
     .select('subscription_json')
-    .eq('user_id', request.requester_id)
-    .maybeSingle()
+    .eq('user_id', recipientId)
 
-  if (!sub) return json({ sent: false })
+  if (!subs || subs.length === 0) return json({ sent: false })
 
   const msg = MESSAGES[event]
-  try {
-    await webpush.sendNotification(sub.subscription_json, JSON.stringify(msg))
-    return json({ sent: true })
-  } catch (e: any) {
-    if (e.statusCode === 410) {
-      await admin.from('push_subscriptions').delete().eq('user_id', request.requester_id)
+  let sent = false
+  for (const row of subs) {
+    try {
+      await webpush.sendNotification(row.subscription_json, JSON.stringify(msg))
+      sent = true
+    } catch (e: any) {
+      if (e.statusCode === 410) {
+        await admin.from('push_subscriptions').delete()
+          .eq('user_id', recipientId)
+          .eq('endpoint', row.subscription_json.endpoint)
+      }
     }
-    return json({ sent: false })
   }
+  return json({ sent })
 })

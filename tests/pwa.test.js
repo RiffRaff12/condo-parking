@@ -1,4 +1,4 @@
-import { isStandalone, isIOS, isIOSBelow16_4, shouldShowInstallOverlay, shouldShowPushButton, registerPush } from '../src/pwa.js'
+import { isStandalone, isIOS, isAndroidChrome, isIOSBelow16_4, shouldShowInstallOverlay, shouldShowPushButton, registerPush } from '../src/pwa.js'
 
 const standaloneMedia = (matches) => (query) => ({ matches })
 
@@ -31,6 +31,20 @@ describe('isIOS', () => {
 
   test('returns false for desktop Chrome user agent', () => {
     expect(isIOS(UA.desktop)).toBe(false)
+  })
+})
+
+describe('isAndroidChrome', () => {
+  test('returns true for Android Chrome user agent', () => {
+    expect(isAndroidChrome(UA.android)).toBe(true)
+  })
+
+  test('returns false for iOS user agent', () => {
+    expect(isAndroidChrome(UA.ios17)).toBe(false)
+  })
+
+  test('returns false for desktop Chrome', () => {
+    expect(isAndroidChrome(UA.desktop)).toBe(false)
   })
 })
 

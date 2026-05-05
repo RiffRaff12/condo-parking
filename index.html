@@ -32,6 +32,12 @@
   }
   /* Smooth transitions on icon/caret */
   .icon, .closed-caret { display: inline-block; transition: transform 0.2s ease; }
+  /* Install/notif gate: pulse the notif banner */
+  @keyframes pulse-ring {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(13,148,136,0.5); }
+    50%       { box-shadow: 0 0 0 8px rgba(13,148,136,0); }
+  }
+  .pulse-ring { animation: pulse-ring 0.5s ease-out 3; }
 </style>
 </head>
 
@@ -95,11 +101,12 @@
 
   <!-- Toggle form button -->
   <button id="toggle-form-btn"
-    class="flex items-center justify-center gap-2.5 w-full min-h-[54px] px-5 py-4 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white rounded-2xl font-bold text-base transition-colors mb-4 shadow-lg shadow-teal-600/25"
+    class="flex items-center justify-center gap-2.5 w-full min-h-[54px] px-5 py-4 bg-teal-600 text-white rounded-2xl font-bold text-base transition-colors mb-1 shadow-lg shadow-teal-600/25"
     aria-expanded="false" aria-controls="form-card">
     <span class="icon text-xl leading-none font-light">+</span>
     <span>Buat Permintaan Parkir</span>
   </button>
+  <p id="toggle-form-hint" class="hidden text-center text-xs text-slate-400 mb-3 mt-1"></p>
 
   <!-- ── Request form card ───────────────────────────────── -->
   <div id="form-card" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 mb-6 overflow-hidden"
@@ -200,6 +207,31 @@
 
 </main>
 
+<!-- ═══ Install modal ════════════════════════════════════ -->
+<div id="modal-install"
+  class="hidden fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm p-4"
+  role="dialog" aria-modal="true" aria-labelledby="modal-install-title">
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 mb-2 relative">
+    <button id="btn-install-close" aria-label="Tutup"
+      class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors text-xl leading-none focus:outline-none">&#215;</button>
+    <p class="text-base font-extrabold text-slate-800 mb-1" id="modal-install-title">Tambah ke Skrin Utama</p>
+    <p class="text-sm text-slate-500 mb-5">Pasang apl ini dahulu untuk membuat permintaan parkir.</p>
+    <div id="install-ios" class="hidden space-y-2 text-sm text-slate-700">
+      <p>1. Tekan ikon <strong>Kongsi</strong> (□↑) di bar bawah Safari.</p>
+      <p>2. Tatal ke bawah dan pilih <strong>"Tambah ke Skrin Utama"</strong>.</p>
+      <p>3. Tekan <strong>"Tambah"</strong> di penjuru kanan atas.</p>
+    </div>
+    <div id="install-android" class="hidden space-y-2 text-sm text-slate-700">
+      <p>1. Tekan ikon menu <strong>⋮</strong> di penjuru kanan atas Chrome.</p>
+      <p>2. Pilih <strong>"Pasang apl"</strong> atau <strong>"Tambah ke skrin utama"</strong>.</p>
+      <p>3. Sahkan pemasangan.</p>
+    </div>
+    <div id="install-generic" class="hidden space-y-2 text-sm text-slate-700">
+      <p>Buka laman web ini dalam <strong>Chrome</strong> atau <strong>Safari</strong>, kemudian tambah ke skrin utama melalui menu pelayar anda.</p>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ Privacy modal ════════════════════════════════════ -->
 <div id="modal-privacy"
   class="hidden fixed inset-0 z-50 flex items-start justify-center bg-black/40 backdrop-blur-sm p-4 overflow-y-auto"
@@ -259,7 +291,7 @@ import { createClient } from '@supabase/supabase-js'
 import { createAuth } from './src/auth.js'
 import { createDb }   from './src/db.js'
 import { esc, sanitize, fmtSlot, fmtMalay, validateRequestForm, buildWhatsAppFulfilLink, computeToDefaults } from './src/lib.js'
-import { registerPush, shouldShowPushButton } from './src/pwa.js'
+import { registerPush, shouldShowPushButton, isStandalone, isIOS, isAndroidChrome, isIOSBelow16_4 } from './src/pwa.js'
 
 /* ── Supabase client ──────────────────────────────────── */
 // TODO: replace with your project's URL and anon key
@@ -304,6 +336,7 @@ async function setupNotifications() {
     })
     if (result.granted) {
       banner.classList.add('hidden')
+      updateButtonGate()
     } else {
       notifBtn.disabled = false
       notifBtn.textContent = 'Aktif'
@@ -311,7 +344,7 @@ async function setupNotifications() {
   })
 }
 
-async function notifyFulfilled(requestId) {
+function notifyEvent(requestId, event) {
   if (!currentSession) return
   fetch(`${SUPABASE_URL}/functions/v1/notify-push`, {
     method: 'POST',
@@ -319,9 +352,13 @@ async function notifyFulfilled(requestId) {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${currentSession.access_token}`,
     },
-    body: JSON.stringify({ request_id: requestId, event: 'fulfilled' }),
+    body: JSON.stringify({ request_id: requestId, event }),
   }).catch(() => {})
 }
+
+const notifyFulfilled           = (id) => notifyEvent(id, 'fulfilled')
+const notifyRevoked             = (id) => notifyEvent(id, 'revoked')
+const notifyRequesterCancelled  = (id) => notifyEvent(id, 'requester_cancelled')
 
 /* ── Views ────────────────────────────────────────────── */
 const loginView = document.getElementById('login-view')
@@ -339,6 +376,7 @@ function showApp() {
   appView.classList.remove('hidden')
   logoutBtn.classList.remove('hidden')
   setupNotifications()
+  updateButtonGate()
 }
 
 /* ── Login ────────────────────────────────────────────── */
@@ -417,11 +455,63 @@ document.querySelectorAll('input[type="date"], input[type="time"]').forEach(inpu
   })
 })
 
+/* ── Button gate ──────────────────────────────────────── */
+function getButtonGateState() {
+  if (!isStandalone()) return 'install'
+  if (shouldShowPushButton() && Notification.permission !== 'granted') return 'notif'
+  return 'open'
+}
+
+function updateButtonGate() {
+  const state   = getButtonGateState()
+  const btn     = document.getElementById('toggle-form-btn')
+  const hint    = document.getElementById('toggle-form-hint')
+  const gated   = state !== 'open'
+  btn.classList.toggle('opacity-60', gated)
+  btn.classList.toggle('cursor-not-allowed', gated)
+  btn.classList.toggle('hover:bg-teal-700', !gated)
+  btn.classList.toggle('active:bg-teal-800', !gated)
+  if (gated) {
+    hint.textContent = state === 'install'
+      ? 'Sila tambah apl ini ke skrin utama dahulu'
+      : 'Sila aktifkan notifikasi dahulu'
+    hint.classList.remove('hidden')
+  } else {
+    hint.classList.add('hidden')
+  }
+}
+
+function openInstallModal() {
+  const ios     = isIOS()
+  const android = isAndroidChrome()
+  document.getElementById('install-ios').classList.toggle('hidden', !ios)
+  document.getElementById('install-android').classList.toggle('hidden', !(!ios && android))
+  document.getElementById('install-generic').classList.toggle('hidden', ios || (!ios && android))
+  document.getElementById('modal-install').classList.remove('hidden')
+}
+
+function pulseNotifBanner() {
+  const banner = document.getElementById('notif-banner')
+  banner.classList.remove('hidden')
+  banner.classList.remove('pulse-ring')
+  void banner.offsetWidth
+  banner.classList.add('pulse-ring')
+  banner.addEventListener('animationend', () => banner.classList.remove('pulse-ring'), { once: true })
+}
+
+document.getElementById('btn-install-close').addEventListener('click', () => {
+  document.getElementById('modal-install').classList.add('hidden')
+})
+
 /* ── Form toggle ──────────────────────────────────────── */
 const toggleBtn = document.getElementById('toggle-form-btn')
 const formCard  = document.getElementById('form-card')
 
 toggleBtn.addEventListener('click', () => {
+  const gateState = getButtonGateState()
+  if (gateState === 'install') { openInstallModal(); return }
+  if (gateState === 'notif')   { pulseNotifBanner(); return }
+
   formCard.classList.toggle('hidden')
   const isOpen = !formCard.classList.contains('hidden')
   toggleBtn.setAttribute('aria-expanded', String(isOpen))
@@ -565,6 +655,7 @@ async function confirmFulfil(id) {
 async function cancelRequest(id) {
   try {
     await db.cancelRequest(id, currentSession.user.id)
+    notifyRequesterCancelled(id)
     await renderList()
   } catch (e) {
     alert('Ralat semasa membatalkan: ' + e.message)

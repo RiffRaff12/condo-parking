@@ -6,6 +6,10 @@ export function isIOS(userAgent = navigator.userAgent) {
   return /iP(hone|ad|od)/.test(userAgent)
 }
 
+export function isAndroidChrome(userAgent = navigator.userAgent) {
+  return /Android/.test(userAgent) && /Chrome\//.test(userAgent)
+}
+
 export function isIOSBelow16_4(userAgent = navigator.userAgent) {
   const m = userAgent.match(/CPU iPhone OS (\d+)_(\d+)/)
   if (!m) return false
