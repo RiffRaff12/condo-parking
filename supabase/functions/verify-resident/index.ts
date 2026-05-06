@@ -14,6 +14,7 @@ function json(body: unknown, status = 200) {
 }
 
 Deno.serve(async (req) => {
+  try {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS })
 
   const { phone, unit, bay } = await req.json()
@@ -53,9 +54,11 @@ Deno.serve(async (req) => {
   })
 
   if (linkErr || !linkData?.properties?.hashed_token) {
-    console.error('generateLink failed:', linkErr?.message, linkErr?.status)
-    return json({ matched: false }, 500)
+    return json({ matched: false, _debug: linkErr?.message ?? linkErr?.status ?? 'no hashed_token' })
   }
 
   return json({ matched: true, hashed_token: linkData.properties.hashed_token })
+  } catch (err) {
+    return json({ matched: false, _debug: `exception: ${err instanceof Error ? err.message : String(err)}` })
+  }
 })
