@@ -570,8 +570,8 @@ submitBtn.addEventListener('click', async () => {
     await db.createRequest({
       requester_id:    currentSession.user.id,
       requester_phone: myPhone,
-      start_datetime:  fromISO,
-      end_datetime:    toISO,
+      start_datetime:  new Date(fromISO).toISOString(),
+      end_datetime:    new Date(toISO).toISOString(),
     })
     sucEl.classList.remove('hidden')
     setTimeout(() => {
