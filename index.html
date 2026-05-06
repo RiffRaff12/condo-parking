@@ -308,6 +308,7 @@ const db       = createDb(supabase)
 let currentSession   = null
 let swRegistration   = null
 let realtimeChannel  = null
+let pollInterval     = null
 
 /* ── Service worker ───────────────────────────────────── */
 async function registerSW() {
@@ -383,6 +384,8 @@ function showApp() {
     .channel('requests-live')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'requests' }, () => renderList())
     .subscribe()
+
+  pollInterval = setInterval(() => renderList(), 15000)
 }
 
 /* ── Login ────────────────────────────────────────────── */
@@ -416,6 +419,7 @@ loginBtn.addEventListener('click', async () => {
 /* ── Logout ───────────────────────────────────────────── */
 logoutBtn.addEventListener('click', async () => {
   if (realtimeChannel) { supabase.removeChannel(realtimeChannel); realtimeChannel = null }
+  if (pollInterval)    { clearInterval(pollInterval); pollInterval = null }
   await auth.signOut()
   currentSession = null
   showLogin()
