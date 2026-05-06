@@ -5,7 +5,7 @@ export function createAuth(client) {
         body: { phone, unit, bay },
       })
       if (error) throw new Error('Ralat pelayan. Cuba lagi.')
-      if (!data.matched) throw new Error(data._debug ?? 'Maklumat tidak sepadan. Sila semak nombor telefon, unit, dan petak parkir anda.')
+      if (!data.matched) throw new Error('Maklumat tidak sepadan. Sila semak nombor telefon, unit, dan petak parkir anda.')
       const { error: sessionError } = await client.auth.verifyOtp({
         token_hash: data.hashed_token,
         type: 'magiclink',

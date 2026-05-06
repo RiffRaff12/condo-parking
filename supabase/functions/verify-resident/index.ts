@@ -41,24 +41,22 @@ Deno.serve(async (req) => {
   // Create auth user if they don't exist yet; ignore error if they already do.
   // Phone is stored only in user_metadata — not as a Supabase auth phone — to
   // avoid E.164 validation rejecting local-format numbers (e.g. 601xxx vs +601xxx).
-  const { error: createErr } = await admin.auth.admin.createUser({
+  await admin.auth.admin.createUser({
     email,
     email_confirm: true,
     user_metadata: { unit, bay, phone },
   })
-  if (createErr) console.log('createUser (may be expected duplicate):', createErr.message)
 
   const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
     type: 'magiclink',
     email,
   })
 
-  if (linkErr || !linkData?.properties?.hashed_token) {
-    return json({ matched: false, _debug: linkErr?.message ?? linkErr?.status ?? 'no hashed_token' })
-  }
+  if (linkErr || !linkData?.properties?.hashed_token) return json({ matched: false }, 500)
 
   return json({ matched: true, hashed_token: linkData.properties.hashed_token })
   } catch (err) {
-    return json({ matched: false, _debug: `exception: ${err instanceof Error ? err.message : String(err)}` })
+    console.error('unhandled exception:', err instanceof Error ? err.message : String(err))
+    return json({ matched: false }, 500)
   }
 })
