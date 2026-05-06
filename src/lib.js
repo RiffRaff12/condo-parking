@@ -113,7 +113,7 @@ export function buildWhatsAppLink(phone) {
 
 export function buildWhatsAppFulfilLink(requesterPhone, fulfillerBay, startIso, endIso) {
   if (!requesterPhone) return null
-  const msg = `Salam! Saya boleh tawarkan Petak ${fulfillerBay} untuk slot dari ${fmtMalay(startIso)} hingga ${fmtMalay(endIso)}. Boleh saya bantu?`
+  const msg = `Salam jiran! 👋\n\nSaya boleh tawarkan petak parking saya:\n🅿️ Petak: ${fulfillerBay}\n📅 Dari: ${fmtMalay(startIso)}\n⏰ Hingga: ${fmtMalay(endIso)}\n\nBoleh saya bantu?`
   return `https://wa.me/${waPhone(requesterPhone)}?text=${encodeURIComponent(msg)}`
 }
 

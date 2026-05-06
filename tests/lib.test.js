@@ -256,31 +256,38 @@ describe('buildWhatsAppLink', () => {
 describe('buildWhatsAppFulfilLink', () => {
   const START = '2026-05-01T08:00:00'
   const END   = '2026-05-01T10:00:00'
+  const BAY   = 'A1-01'
 
-  test('produces a wa.me URL with the fulfiller phone number', () => {
-    const url = buildWhatsAppFulfilLink('0123456789', START, END)
+  test('produces a wa.me URL with the requester phone number', () => {
+    const url = buildWhatsAppFulfilLink('0123456789', BAY, START, END)
     expect(url).toMatch(/^https:\/\/wa\.me\/60123456789/)
   })
 
   test('includes a ?text= query param', () => {
-    const url = buildWhatsAppFulfilLink('0123456789', START, END)
+    const url = buildWhatsAppFulfilLink('0123456789', BAY, START, END)
     expect(url).toContain('?text=')
   })
 
+  test('encoded message contains the fulfiller bay', () => {
+    const url = buildWhatsAppFulfilLink('0123456789', BAY, START, END)
+    const text = decodeURIComponent(url.split('?text=')[1])
+    expect(text).toContain(BAY)
+  })
+
   test('encoded message contains the start time in Malay', () => {
-    const url = buildWhatsAppFulfilLink('0123456789', START, END)
+    const url = buildWhatsAppFulfilLink('0123456789', BAY, START, END)
     const text = decodeURIComponent(url.split('?text=')[1])
     expect(text).toContain(fmtMalay(START))
   })
 
   test('encoded message contains the end time in Malay', () => {
-    const url = buildWhatsAppFulfilLink('0123456789', START, END)
+    const url = buildWhatsAppFulfilLink('0123456789', BAY, START, END)
     const text = decodeURIComponent(url.split('?text=')[1])
     expect(text).toContain(fmtMalay(END))
   })
 
-  test('handles +60 prefix on fulfiller phone', () => {
-    const url = buildWhatsAppFulfilLink('+60123456789', START, END)
+  test('handles +60 prefix on requester phone', () => {
+    const url = buildWhatsAppFulfilLink('+60123456789', BAY, START, END)
     expect(url).toMatch(/^https:\/\/wa\.me\/60123456789/)
   })
 })
