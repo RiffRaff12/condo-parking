@@ -1,9 +1,9 @@
 export function createDb(client) {
   return {
-    async createRequest({ requester_id, start_datetime, end_datetime }) {
+    async createRequest({ requester_id, requester_phone, start_datetime, end_datetime }) {
       const { data, error } = await client
         .from('requests')
-        .insert({ requester_id, start_datetime, end_datetime, status: 'open' })
+        .insert({ requester_id, requester_phone, start_datetime, end_datetime, status: 'open' })
         .select()
         .single()
       if (error) throw error

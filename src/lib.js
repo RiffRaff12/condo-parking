@@ -111,9 +111,10 @@ export function buildWhatsAppLink(phone) {
   return `https://wa.me/${waPhone(phone)}`
 }
 
-export function buildWhatsAppFulfilLink(phone, startIso, endIso) {
-  const msg = `Salam! Saya boleh tawarkan petak saya dari ${fmtMalay(startIso)} hingga ${fmtMalay(endIso)}. Boleh saya bantu?`
-  return `https://wa.me/${waPhone(phone)}?text=${encodeURIComponent(msg)}`
+export function buildWhatsAppFulfilLink(requesterPhone, fulfillerBay, startIso, endIso) {
+  if (!requesterPhone) return null
+  const msg = `Salam! Saya boleh tawarkan Petak ${fulfillerBay} untuk slot dari ${fmtMalay(startIso)} hingga ${fmtMalay(endIso)}. Boleh saya bantu?`
+  return `https://wa.me/${waPhone(requesterPhone)}?text=${encodeURIComponent(msg)}`
 }
 
 export function buildParkingPass({ fulfiller_bay, start_datetime, end_datetime, fulfiller_phone, requester_phone }) {

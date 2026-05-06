@@ -565,9 +565,10 @@ submitBtn.addEventListener('click', async () => {
   submitBtn.textContent = 'Menghantar...'
   try {
     await db.createRequest({
-      requester_id:   currentSession.user.id,
-      start_datetime: fromISO,
-      end_datetime:   toISO,
+      requester_id:    currentSession.user.id,
+      requester_phone: myPhone,
+      start_datetime:  fromISO,
+      end_datetime:    toISO,
     })
     sucEl.classList.remove('hidden')
     setTimeout(() => {
@@ -626,7 +627,9 @@ function buildOpenCard(req) {
         <div class="fp-err hidden px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-semibold"></div>
         <button class="btn-confirm flex items-center justify-center gap-2 w-full min-h-[50px] py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold cursor-pointer transition-colors"
                 data-id="${esc(req.id)}"
-                data-wa-url="${esc(buildWhatsAppFulfilLink(myPhone, req.start_datetime, req.end_datetime))}">
+                ${buildWhatsAppFulfilLink(req.requester_phone, myBay, req.start_datetime, req.end_datetime)
+                  ? `data-wa-url="${esc(buildWhatsAppFulfilLink(req.requester_phone, myBay, req.start_datetime, req.end_datetime))}"`
+                  : ''}>
           💬 Sahkan &amp; Hubungi via WhatsApp
         </button>
       </div>
@@ -705,7 +708,7 @@ async function renderList() {
 
   listEl.querySelectorAll('.btn-confirm').forEach(btn => {
     btn.addEventListener('click', () => {
-      window.open(btn.dataset.waUrl, '_blank', 'noopener,noreferrer')
+      if (btn.dataset.waUrl) window.open(btn.dataset.waUrl, '_blank', 'noopener,noreferrer')
       confirmFulfil(btn.dataset.id)
     })
   })
