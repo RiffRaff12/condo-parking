@@ -1099,6 +1099,10 @@ document.getElementById('btn-show-login').addEventListener('click', showLoginFor
 
 /* ── Sign-up step 1 ───────────────────────────────────── */
 let pendingSignupEmail = ''
+let pendingSignupName  = ''
+let pendingSignupPhone = ''
+let pendingSignupUnit  = ''
+let pendingSignupBay   = ''
 
 document.getElementById('signup-submit-btn').addEventListener('click', async () => {
   const errEl = document.getElementById('signup-error')
@@ -1137,27 +1141,44 @@ document.getElementById('signup-submit-btn').addEventListener('click', async () 
 
   const btn = document.getElementById('signup-submit-btn')
   btn.disabled = true
-  btn.textContent = 'Menghantar...'
+  btn.textContent = 'Menyemak...'
 
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-otp`, {
+    // Duplicate check first
+    const checkRes = await fetch(`${SUPABASE_URL}/functions/v1/send-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON}` },
-      body: JSON.stringify({ name, email, phone, unit_number: unit, bay_number: bay }),
+      body: JSON.stringify({ phone, unit_number: unit, bay_number: bay }),
     })
-    const data = await res.json()
-    if (!res.ok) {
-      if (data.code === 'DUPLICATE') {
-        errEl.textContent = 'Anda sudah berdaftar. Sila log masuk.'
-      } else {
-        errEl.textContent = data.message || 'Ralat pelayan. Sila cuba lagi.'
-      }
+    const checkData = await checkRes.json()
+    if (!checkRes.ok) {
+      errEl.textContent = checkData.code === 'DUPLICATE'
+        ? 'Anda sudah berdaftar. Sila log masuk.'
+        : checkData.message || 'Ralat pelayan. Sila cuba lagi.'
       errEl.classList.remove('hidden')
       return
     }
+
+    // Send OTP via Supabase Auth
+    btn.textContent = 'Menghantar OTP...'
+    const { error: otpErr } = await supabase.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: true },
+    })
+    if (otpErr) {
+      errEl.textContent = otpErr.message || 'Gagal menghantar OTP. Sila cuba lagi.'
+      errEl.classList.remove('hidden')
+      return
+    }
+
     pendingSignupEmail = email
+    pendingSignupName  = name
+    pendingSignupPhone = phone
+    pendingSignupUnit  = unit
+    pendingSignupBay   = bay
+
     document.getElementById('signup-otp-hint').textContent =
-      `Kod OTP telah dihantar ke ${email}. Sah selama 15 minit.`
+      `Kod OTP telah dihantar ke ${email}. Sila semak inbox atau folder spam anda.`
     document.getElementById('signup-step-1').classList.add('hidden')
     document.getElementById('signup-step-2').classList.remove('hidden')
     document.getElementById('s-otp').value = ''
@@ -1185,27 +1206,49 @@ document.getElementById('signup-otp-btn').addEventListener('click', async () => 
   btn.disabled = true
   btn.textContent = 'Mengesahkan...'
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/verify-otp`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON}` },
-      body: JSON.stringify({ email: pendingSignupEmail, otp_code: otp }),
+    const { data: verifyData, error: verifyErr } = await supabase.auth.verifyOtp({
+      email: pendingSignupEmail,
+      token: otp,
+      type: 'email',
     })
-    const data = await res.json()
-    if (!res.ok) {
-      errEl.textContent = data.code === 'EXPIRED'
-        ? 'Kod OTP telah tamat tempoh. Sila kembali dan daftar semula.'
-        : 'Kod OTP tidak sah. Sila semak dan cuba lagi.'
+    if (verifyErr) {
+      errEl.textContent = 'Kod OTP tidak sah atau telah tamat tempoh. Sila semak dan cuba lagi.'
       errEl.classList.remove('hidden')
       return
     }
+
+    // Complete signup — insert into residents_directory and delete the temp auth user
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/complete-signup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${verifyData.session.access_token}`,
+      },
+      body: JSON.stringify({
+        name:        pendingSignupName,
+        email:       pendingSignupEmail,
+        phone:       pendingSignupPhone,
+        unit_number: pendingSignupUnit,
+        bay_number:  pendingSignupBay,
+      }),
+    })
+    const data = await res.json()
+    await supabase.auth.signOut()
+
+    if (!res.ok) {
+      errEl.textContent = data.code === 'DUPLICATE'
+        ? 'Anda sudah berdaftar. Sila log masuk.'
+        : data.error || 'Ralat pelayan. Sila cuba lagi.'
+      errEl.classList.remove('hidden')
+      return
+    }
+
     document.getElementById('signup-step-2').classList.add('hidden')
     document.getElementById('signup-success').classList.remove('hidden')
     setTimeout(() => {
       showLoginForm()
-      const phone = document.getElementById('s-phone').value
-      const unit  = document.getElementById('s-unit').value
-      document.getElementById('l-phone').value = phone
-      document.getElementById('l-unit').value  = unit
+      document.getElementById('l-phone').value = document.getElementById('s-phone').value
+      document.getElementById('l-unit').value  = document.getElementById('s-unit').value
       document.getElementById('l-phone').focus()
     }, 2500)
   } catch {
@@ -1260,76 +1303,11 @@ document.getElementById('profile-email').addEventListener('input', () => {
   const original = currentSession?.user?.user_metadata?.email || ''
   const changed  = document.getElementById('profile-email').value.trim() !== original
   document.getElementById('profile-email-otp-btn').classList.toggle('hidden', !changed)
-  document.getElementById('profile-email-otp-row').classList.add('hidden')
-})
-
-document.getElementById('profile-email-otp-btn').addEventListener('click', async () => {
-  const newEmail = document.getElementById('profile-email').value.trim()
-  const btn = document.getElementById('profile-email-otp-btn')
-  btn.disabled = true
-  btn.textContent = 'Menghantar...'
-  try {
-    const meta = currentSession.user.user_metadata
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-otp`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${currentSession.access_token}`,
-      },
-      body: JSON.stringify({
-        name: meta.name, email: newEmail,
-        phone: meta.phone, unit_number: meta.unit, bay_number: meta.bay,
-        mode: 'email_change',
-      }),
-    })
-    if (res.ok) {
-      document.getElementById('profile-email-otp-row').classList.remove('hidden')
-      document.getElementById('profile-email-otp').focus()
-    } else {
-      showProfileMsg('Gagal menghantar OTP. Sila cuba lagi.', 'error')
-    }
-  } catch {
-    showProfileMsg('Gagal menghubungi pelayan.', 'error')
-  } finally {
-    btn.disabled = false
-    btn.textContent = 'Sahkan'
-  }
-})
-
-document.getElementById('profile-email-otp-verify-btn').addEventListener('click', async () => {
-  const otp   = document.getElementById('profile-email-otp').value.trim()
-  const email = document.getElementById('profile-email').value.trim()
-  if (otp.length !== 6) { showProfileMsg('Sila masukkan kod 6 digit.', 'error'); return }
-  const btn = document.getElementById('profile-email-otp-verify-btn')
-  btn.disabled = true
-  btn.textContent = 'Mengesahkan...'
-  try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/verify-otp`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${currentSession.access_token}`,
-      },
-      body: JSON.stringify({ email, otp_code: otp, mode: 'email_change', user_id: currentSession.user.id }),
-    })
-    if (res.ok) {
-      document.getElementById('profile-email-otp-row').classList.add('hidden')
-      document.getElementById('profile-email-otp-btn').classList.add('hidden')
-      showProfileMsg('E-mel berjaya dikemaskini.', 'success')
-      currentSession.user.user_metadata.email = email
-    } else {
-      showProfileMsg('Kod OTP tidak sah atau telah tamat tempoh.', 'error')
-    }
-  } catch {
-    showProfileMsg('Gagal menghubungi pelayan.', 'error')
-  } finally {
-    btn.disabled = false
-    btn.textContent = 'Hantar'
-  }
 })
 
 document.getElementById('profile-save-btn').addEventListener('click', async () => {
-  const name = sanitize(document.getElementById('profile-name').value.trim(), 100)
+  const name  = sanitize(document.getElementById('profile-name').value.trim(), 100)
+  const email = sanitize(document.getElementById('profile-email').value.trim(), 100)
   const rawBay = sanitize(document.getElementById('profile-bay').value, 20)
   if (!name || !rawBay) { showProfileMsg('Nama dan petak parking diperlukan.', 'error'); return }
   const bay = normaliseBay(rawBay)
@@ -1343,13 +1321,15 @@ document.getElementById('profile-save-btn').addEventListener('click', async () =
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${currentSession.access_token}`,
       },
-      body: JSON.stringify({ name, bay }),
+      body: JSON.stringify({ name, bay, email }),
     })
     if (res.ok) {
-      currentSession.user.user_metadata.name = name
-      currentSession.user.user_metadata.bay  = bay
+      currentSession.user.user_metadata.name  = name
+      currentSession.user.user_metadata.bay   = bay
+      currentSession.user.user_metadata.email = email
       myBay = bay
       localStorage.setItem('pkjiran_bay', bay)
+      document.getElementById('profile-email-otp-btn').classList.add('hidden')
       showProfileMsg('Profil berjaya dikemaskini.', 'success')
     } else {
       showProfileMsg('Ralat semasa menyimpan. Sila cuba lagi.', 'error')

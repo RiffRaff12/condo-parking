@@ -19,15 +19,15 @@ Deno.serve(async (req) => {
   const authHeader = req.headers.get('Authorization')
   if (!authHeader) return json({ error: 'Unauthorized' }, 401)
 
-  let body: { name?: string; bay?: string }
+  let body: { name?: string; bay?: string; email?: string }
   try {
     body = await req.json()
   } catch {
     return json({ error: 'Invalid JSON' }, 400)
   }
 
-  const { name, bay } = body
-  if (!name && !bay) return json({ error: 'At least one field required' }, 400)
+  const { name, bay, email } = body
+  if (!name && !bay && !email) return json({ error: 'At least one field required' }, 400)
 
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { persistSession: false } })
 
@@ -39,8 +39,9 @@ Deno.serve(async (req) => {
 
   const updates: Record<string, string> = {}
   const metaUpdates: Record<string, string> = {}
-  if (name) { updates.name = name.trim().slice(0, 100); metaUpdates.name = updates.name }
-  if (bay)  { updates.bay_number = bay.trim().toUpperCase().slice(0, 20); metaUpdates.bay = updates.bay_number }
+  if (name)  { updates.name = name.trim().slice(0, 100); metaUpdates.name = updates.name }
+  if (bay)   { updates.bay_number = bay.trim().toUpperCase().slice(0, 20); metaUpdates.bay = updates.bay_number }
+  if (email) { updates.email = email.trim().slice(0, 200); metaUpdates.email = updates.email }
 
   const { error: dbErr } = await admin
     .from('residents_directory')
