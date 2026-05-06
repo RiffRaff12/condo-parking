@@ -708,7 +708,7 @@ async function renderList() {
 
   listEl.querySelectorAll('.btn-confirm').forEach(btn => {
     btn.addEventListener('click', () => {
-      if (btn.dataset.waUrl) window.open(btn.dataset.waUrl, '_blank', 'noopener,noreferrer')
+      if (btn.dataset.waUrl) window.location.href = btn.dataset.waUrl
       confirmFulfil(btn.dataset.id)
     })
   })
