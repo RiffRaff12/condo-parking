@@ -457,7 +457,6 @@ document.querySelectorAll('input[type="date"], input[type="time"]').forEach(inpu
 
 /* ── Button gate ──────────────────────────────────────── */
 function getButtonGateState() {
-  if (shouldShowPushButton() && Notification.permission !== 'granted') return 'notif'
   return 'open'
 }
 
