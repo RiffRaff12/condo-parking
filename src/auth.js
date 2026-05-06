@@ -1,8 +1,10 @@
 export function createAuth(client) {
   return {
     async verifyAndSignIn({ phone, unit, bay }) {
+      // Normalise Malaysian trunk prefix: 0123… → 60123…
+      const normalisedPhone = phone.startsWith('0') ? '6' + phone : phone
       const { data, error } = await client.functions.invoke('verify-resident', {
-        body: { phone, unit, bay },
+        body: { phone: normalisedPhone, unit, bay },
       })
       if (error) throw new Error('Ralat pelayan. Cuba lagi.')
       if (!data.matched) throw new Error('Maklumat tidak sepadan. Sila semak nombor telefon, unit, dan petak parkir anda.')

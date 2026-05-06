@@ -17,9 +17,12 @@ Deno.serve(async (req) => {
   try {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS })
 
-  const { phone, unit, bay } = await req.json()
+  const { phone: rawPhone, unit, bay } = await req.json()
 
-  if (!phone || !unit || !bay) return json({ matched: false }, 400)
+  if (!rawPhone || !unit || !bay) return json({ matched: false }, 400)
+
+  // Normalise Malaysian trunk prefix: 0123… → 60123…
+  const phone = rawPhone.startsWith('0') ? '6' + rawPhone : rawPhone
 
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
     auth: { persistSession: false },

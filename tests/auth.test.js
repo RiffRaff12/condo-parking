@@ -73,6 +73,19 @@ describe('verifyAndSignIn', () => {
     expect(result).toEqual(session)
   })
 
+  test('normalises phone with trunk prefix 0 before invoking function', async () => {
+    const client = mockClient({
+      functions: { invoke: vi.fn().mockResolvedValue({ data: { matched: false }, error: null }) },
+    })
+    const auth = createAuth(client)
+
+    await auth.verifyAndSignIn({ phone: '0123456789', unit: 'A-01', bay: 'P1-01' }).catch(() => {})
+
+    expect(client.functions.invoke).toHaveBeenCalledWith('verify-resident', {
+      body: { phone: '60123456789', unit: 'A-01', bay: 'P1-01' },
+    })
+  })
+
   test('propagates verifyOtp error', async () => {
     const client = mockClient({
       functions: { invoke: vi.fn().mockResolvedValue({ data: { matched: true, hashed_token: 'hash-abc' }, error: null }) },
