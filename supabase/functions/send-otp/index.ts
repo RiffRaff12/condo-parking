@@ -51,15 +51,17 @@ Deno.serve(async (req) => {
     return json({ error: 'All fields are required' }, 400)
   }
 
-  let phone: string
+  let localPhone: string
   try {
-    phone = normalisePhone(body.phone)
+    localPhone = normalisePhone(body.phone)
   } catch {
     return json({ code: 'INVALID_PHONE', message: 'Invalid Malaysian mobile number' }, 400)
   }
 
-  const unit = normaliseUnit(unit_number)
-  const bay  = normaliseBay(bay_number)
+  // Store with 60-prefix to match what verify-resident queries
+  const phone = '6' + localPhone
+  const unit  = normaliseUnit(unit_number)
+  const bay   = normaliseBay(bay_number)
 
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { persistSession: false } })
 

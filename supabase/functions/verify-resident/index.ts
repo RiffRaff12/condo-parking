@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
 
   const { data: resident, error } = await admin
     .from('residents_directory')
-    .select('id, phone, unit_number, bay_number')
+    .select('id, phone, unit_number, bay_number, name, email')
     .eq('phone', phone)
     .eq('unit_number', unit)
     .eq('bay_number', bay)
@@ -39,20 +39,32 @@ Deno.serve(async (req) => {
   if (error || !resident) return json({ matched: false })
 
   // Deterministic email tied to the phone number
-  const email = `${phone}@parkitjiran.internal`
+  const internalEmail = `${phone}@parkitjiran.internal`
+
+  const userMeta = {
+    unit, bay, phone,
+    name:  resident.name  || '',
+    email: resident.email || '',
+  }
 
   // Create auth user if they don't exist yet; ignore error if they already do.
   // Phone is stored only in user_metadata — not as a Supabase auth phone — to
   // avoid E.164 validation rejecting local-format numbers (e.g. 601xxx vs +601xxx).
   await admin.auth.admin.createUser({
-    email,
+    email: internalEmail,
     email_confirm: true,
-    user_metadata: { unit, bay, phone },
+    user_metadata: userMeta,
   })
+
+  // Sync latest resident data (name, email, bay) to metadata on every login
+  const { data: existingUser } = await admin.auth.admin.getUserByEmail(internalEmail)
+  if (existingUser?.id) {
+    await admin.auth.admin.updateUserById(existingUser.id, { user_metadata: userMeta })
+  }
 
   const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
     type: 'magiclink',
-    email,
+    email: internalEmail,
   })
 
   if (linkErr || !linkData?.properties?.hashed_token) return json({ matched: false }, 500)

@@ -47,9 +47,13 @@ Deno.serve(async (req) => {
   await admin.from('pending_signups').delete().eq('id', pending.id)
 
   if (mode === 'email_change' && user_id) {
-    await admin.from('residents_directory')
-      .update({ email: pending.email })
-      .eq('id', user_id)
+    const { data: { user: authUser } } = await admin.auth.admin.getUserById(user_id)
+    const phone = authUser?.user_metadata?.phone
+    if (phone) {
+      await admin.from('residents_directory')
+        .update({ email: pending.email })
+        .eq('phone', phone)
+    }
     await admin.auth.admin.updateUserById(user_id, {
       user_metadata: { email: pending.email },
     })
