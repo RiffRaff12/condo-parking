@@ -624,13 +624,11 @@ function buildOpenCard(req) {
       <div class="fulfil-form space-y-3">
         <p class="text-sm text-slate-600">Anda akan menawarkan petak <strong class="font-bold text-slate-800">${esc(myBay)}</strong> kepada jiran ini.</p>
         <div class="fp-err hidden px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-semibold"></div>
-        <a href="${esc(buildWhatsAppFulfilLink(myPhone, req.start_datetime, req.end_datetime))}"
-           target="_blank" rel="noopener noreferrer"
-           class="flex items-center justify-center gap-2 w-full min-h-[50px] py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold transition-colors">
-          💬 Hubungi via WhatsApp
-        </a>
-        <button class="btn-confirm block w-full min-h-[50px] py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold cursor-pointer transition-colors"
-                data-id="${esc(req.id)}">Sahkan &amp; Bantu</button>
+        <button class="btn-confirm flex items-center justify-center gap-2 w-full min-h-[50px] py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold cursor-pointer transition-colors"
+                data-id="${esc(req.id)}"
+                data-wa-url="${esc(buildWhatsAppFulfilLink(myPhone, req.start_datetime, req.end_datetime))}">
+          💬 Sahkan &amp; Hubungi via WhatsApp
+        </button>
       </div>
       <div class="fulfil-success hidden bg-white rounded-xl border border-teal-200 p-5 text-center" id="fs-${esc(req.id)}">
         <p class="fs-msg text-sm text-slate-700 leading-relaxed"></p>
@@ -650,7 +648,7 @@ async function confirmFulfil(id) {
 
   const confirmBtn = panel.querySelector('.btn-confirm')
   confirmBtn.disabled = true
-  confirmBtn.textContent = 'Menghantar...'
+  confirmBtn.innerHTML = 'Menghantar...'
   try {
     await db.fulfillRequest(id, { fulfiller_id: currentSession.user.id, fulfiller_bay: fBay })
     notifyFulfilled(id)
@@ -665,7 +663,7 @@ async function confirmFulfil(id) {
       : 'Ralat: ' + e.message
     errMsgEl.classList.remove('hidden')
     confirmBtn.disabled = false
-    confirmBtn.textContent = 'Sahkan & Bantu'
+    confirmBtn.innerHTML = '💬 Sahkan &amp; Hubungi via WhatsApp'
   }
 }
 
@@ -706,7 +704,10 @@ async function renderList() {
   })
 
   listEl.querySelectorAll('.btn-confirm').forEach(btn => {
-    btn.addEventListener('click', () => confirmFulfil(btn.dataset.id))
+    btn.addEventListener('click', () => {
+      window.open(btn.dataset.waUrl, '_blank', 'noopener,noreferrer')
+      confirmFulfil(btn.dataset.id)
+    })
   })
 
   listEl.querySelectorAll('.btn-cancel').forEach(btn => {
