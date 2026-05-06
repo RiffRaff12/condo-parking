@@ -457,7 +457,6 @@ document.querySelectorAll('input[type="date"], input[type="time"]').forEach(inpu
 
 /* ── Button gate ──────────────────────────────────────── */
 function getButtonGateState() {
-  if (!isStandalone()) return 'install'
   if (shouldShowPushButton() && Notification.permission !== 'granted') return 'notif'
   return 'open'
 }
@@ -509,8 +508,7 @@ const formCard  = document.getElementById('form-card')
 
 toggleBtn.addEventListener('click', () => {
   const gateState = getButtonGateState()
-  if (gateState === 'install') { openInstallModal(); return }
-  if (gateState === 'notif')   { pulseNotifBanner(); return }
+  if (gateState === 'notif') { pulseNotifBanner(); return }
 
   formCard.classList.toggle('hidden')
   const isOpen = !formCard.classList.contains('hidden')
