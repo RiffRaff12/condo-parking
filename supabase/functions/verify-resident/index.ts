@@ -37,30 +37,21 @@ Deno.serve(async (req) => {
   // Deterministic email tied to the phone number
   const email = `${phone}@parkitjiran.internal`
 
-  const { data: existingUser } = await admin.auth.admin.getUserByEmail(email)
-
-  let userId: string
-
-  if (existingUser?.user) {
-    userId = existingUser.user.id
-  } else {
-    const { data: created, error: createErr } = await admin.auth.admin.createUser({
-      phone,
-      phone_confirm: true,
-      email,
-      email_confirm: true,
-      user_metadata: { unit, bay },
-    })
-    if (createErr || !created.user) return json({ matched: false }, 500)
-    userId = created.user.id
-  }
-
-  const { data: sessionData, error: sessionErr } = await admin.auth.admin.createSession({ user_id: userId })
-  if (sessionErr || !sessionData?.session) return json({ matched: false }, 500)
-
-  return json({
-    matched: true,
-    access_token: sessionData.session.access_token,
-    refresh_token: sessionData.session.refresh_token,
+  // Create auth user if they don't exist yet; ignore error if they already do
+  await admin.auth.admin.createUser({
+    phone,
+    phone_confirm: true,
+    email,
+    email_confirm: true,
+    user_metadata: { unit, bay },
   })
+
+  const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
+    type: 'magiclink',
+    email,
+  })
+
+  if (linkErr || !linkData?.properties?.hashed_token) return json({ matched: false }, 500)
+
+  return json({ matched: true, hashed_token: linkData.properties.hashed_token })
 })

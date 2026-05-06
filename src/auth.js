@@ -6,9 +6,9 @@ export function createAuth(client) {
       })
       if (error) throw new Error('Ralat pelayan. Cuba lagi.')
       if (!data.matched) throw new Error('Maklumat tidak sepadan. Sila semak nombor telefon, unit, dan petak parkir anda.')
-      const { error: sessionError } = await client.auth.setSession({
-        access_token: data.access_token,
-        refresh_token: data.refresh_token,
+      const { error: sessionError } = await client.auth.verifyOtp({
+        token_hash: data.hashed_token,
+        type: 'magiclink',
       })
       if (sessionError) throw sessionError
       const { data: sessionData } = await client.auth.getSession()
