@@ -5,7 +5,7 @@ function mockClient(overrides = {}) {
   return {
     auth: {
       getSession:  vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
-      setSession:  vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
+      verifyOtp:   vi.fn().mockResolvedValue({ data: {}, error: null }),
       signOut:     vi.fn().mockResolvedValue({ error: null }),
       ...overrides.auth,
     },
@@ -45,22 +45,45 @@ describe('verifyAndSignIn', () => {
       .rejects.toThrow('Maklumat tidak sepadan')
   })
 
-  test('returns session on successful 3-factor match', async () => {
-    const session = { access_token: 'tok', refresh_token: 'ref', user: { id: 'user-1' } }
+  test('throws Malay server error when invoke returns an error (e.g. invalid JWT rejected by gateway)', async () => {
     const client = mockClient({
-      functions: { invoke: vi.fn().mockResolvedValue({ data: { matched: true, access_token: 'tok', refresh_token: 'ref' }, error: null }) },
+      functions: { invoke: vi.fn().mockResolvedValue({ data: null, error: new Error('Invalid JWT') }) },
+    })
+    const auth = createAuth(client)
+
+    await expect(auth.verifyAndSignIn({ phone: '60123456789', unit: 'A-01', bay: 'P1-01' }))
+      .rejects.toThrow('Ralat pelayan. Cuba lagi.')
+  })
+
+  test('calls verifyOtp with hashed_token on successful match', async () => {
+    const session = { access_token: 'tok', user: { id: 'user-1' } }
+    const client = mockClient({
+      functions: { invoke: vi.fn().mockResolvedValue({ data: { matched: true, hashed_token: 'hash-abc' }, error: null }) },
       auth: {
-        setSession: vi.fn().mockResolvedValue({ data: { session }, error: null }),
+        verifyOtp:  vi.fn().mockResolvedValue({ data: {}, error: null }),
         getSession: vi.fn().mockResolvedValue({ data: { session }, error: null }),
-        signOut: vi.fn(),
+        signOut:    vi.fn(),
       },
     })
     const auth = createAuth(client)
 
     const result = await auth.verifyAndSignIn({ phone: '60123456789', unit: 'A-01', bay: 'P1-01' })
 
+    expect(client.auth.verifyOtp).toHaveBeenCalledWith({ token_hash: 'hash-abc', type: 'magiclink' })
     expect(result).toEqual(session)
-    expect(client.auth.setSession).toHaveBeenCalledWith({ access_token: 'tok', refresh_token: 'ref' })
+  })
+
+  test('propagates verifyOtp error', async () => {
+    const client = mockClient({
+      functions: { invoke: vi.fn().mockResolvedValue({ data: { matched: true, hashed_token: 'hash-abc' }, error: null }) },
+      auth: {
+        verifyOtp: vi.fn().mockResolvedValue({ data: null, error: new Error('OTP expired') }),
+      },
+    })
+    const auth = createAuth(client)
+
+    await expect(auth.verifyAndSignIn({ phone: '60123456789', unit: 'A-01', bay: 'P1-01' }))
+      .rejects.toThrow('OTP expired')
   })
 })
 
