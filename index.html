@@ -309,6 +309,8 @@ let currentSession   = null
 let swRegistration   = null
 let realtimeChannel  = null
 let pollInterval     = null
+let myPhone          = null
+let myBay            = null
 
 /* ── Service worker ───────────────────────────────────── */
 async function registerSW() {
@@ -406,6 +408,10 @@ loginBtn.addEventListener('click', async () => {
   loginBtn.textContent = 'Sedang mengesahkan...'
   try {
     currentSession = await auth.verifyAndSignIn({ phone, unit, bay })
+    myPhone = phone
+    myBay = bay
+    localStorage.setItem('pkjiran_phone', phone)
+    localStorage.setItem('pkjiran_bay', bay)
     showApp()
     await renderList()
   } catch (e) {
@@ -422,6 +428,10 @@ logoutBtn.addEventListener('click', async () => {
   if (pollInterval)    { clearInterval(pollInterval); pollInterval = null }
   await auth.signOut()
   currentSession = null
+  myPhone = null
+  myBay = null
+  localStorage.removeItem('pkjiran_phone')
+  localStorage.removeItem('pkjiran_bay')
   showLogin()
 })
 
@@ -612,9 +622,9 @@ function buildOpenCard(req) {
     ${!isMine ? `
     <div class="fulfil-panel hidden border-t border-slate-100 p-4 bg-teal-50/60" id="fp-${esc(req.id)}">
       <div class="fulfil-form space-y-3">
-        <p class="text-sm text-slate-600">Anda akan menawarkan petak <strong class="font-bold text-slate-800">${esc(currentSession.user.user_metadata.bay)}</strong> kepada jiran ini.</p>
+        <p class="text-sm text-slate-600">Anda akan menawarkan petak <strong class="font-bold text-slate-800">${esc(myBay)}</strong> kepada jiran ini.</p>
         <div class="fp-err hidden px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-semibold"></div>
-        <a href="${esc(buildWhatsAppFulfilLink(currentSession.user.user_metadata.phone, req.start_datetime, req.end_datetime))}"
+        <a href="${esc(buildWhatsAppFulfilLink(myPhone, req.start_datetime, req.end_datetime))}"
            target="_blank" rel="noopener noreferrer"
            class="flex items-center justify-center gap-2 w-full min-h-[50px] py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold transition-colors">
           💬 Hubungi via WhatsApp
@@ -636,7 +646,7 @@ async function confirmFulfil(id) {
   const errMsgEl = panel.querySelector('.fp-err')
   errMsgEl.classList.add('hidden')
 
-  const fBay = currentSession.user.user_metadata.bay
+  const fBay = myBay
 
   const confirmBtn = panel.querySelector('.btn-confirm')
   confirmBtn.disabled = true
@@ -691,7 +701,7 @@ async function renderList() {
       panel.classList.toggle('hidden')
       const open = !panel.classList.contains('hidden')
       btn.classList.toggle('active', open)
-      if (open) panel.querySelector('.fp-bay').focus()
+      if (open) panel.focus()
     })
   })
 
@@ -810,8 +820,12 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closePrivacy
 async function init() {
   await registerSW()
   currentSession = await auth.getSession()
-  if (currentSession) { showApp(); await renderList() }
-  else showLogin()
+  if (currentSession) {
+    myPhone = localStorage.getItem('pkjiran_phone') || ''
+    myBay = localStorage.getItem('pkjiran_bay') || ''
+    showApp()
+    await renderList()
+  } else showLogin()
 }
 
 init()
