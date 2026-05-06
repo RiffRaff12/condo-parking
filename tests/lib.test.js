@@ -1,4 +1,4 @@
-import { uuid, esc, waPhone, fmtMalay, fmtSlot, loadRequests, saveRequests, buildFulfillmentMessage, shouldShowCancelButton, buildRevocationMessage, shouldShowRevokeButton, buildExpiryMessage, buildDailyDigestMessage, buildCommitmentPingMessage, buildWhatsAppLink, buildParkingPass, buildWhatsAppFulfilLink } from '../src/lib.js'
+import { uuid, esc, waPhone, fmtMalay, fmtSlot, loadRequests, saveRequests, buildFulfillmentMessage, shouldShowCancelButton, buildRevocationMessage, shouldShowRevokeButton, buildExpiryMessage, buildDailyDigestMessage, buildCommitmentPingMessage, buildWhatsAppLink, buildParkingPass, buildWhatsAppFulfilLink, normalisePhone, normaliseUnit, normaliseBay } from '../src/lib.js'
 
 describe('uuid', () => {
   test('returns a 36-character string', () => {
@@ -317,5 +317,65 @@ describe('buildParkingPass', () => {
 
   test('includes WhatsApp link to requester', () => {
     expect(buildParkingPass(request).requesterWaLink).toBe('https://wa.me/60123456789')
+  })
+})
+
+describe('normalisePhone', () => {
+  test('strips dashes, spaces, and parentheses from a valid number', () => {
+    expect(normalisePhone('(012) 345-6789')).toBe('0123456789')
+  })
+  test('accepts a valid 10-digit Malaysian mobile', () => {
+    expect(normalisePhone('0123456789')).toBe('0123456789')
+  })
+  test('accepts a valid 11-digit Malaysian mobile', () => {
+    expect(normalisePhone('01234567890')).toBe('01234567890')
+  })
+  test('normalises +60 international prefix to local 0 prefix', () => {
+    expect(normalisePhone('+60123456789')).toBe('0123456789')
+  })
+  test('normalises 60 international prefix to local 0 prefix', () => {
+    expect(normalisePhone('60123456789')).toBe('0123456789')
+  })
+  test('throws INVALID_PHONE for non-01 prefix (e.g. landline 03)', () => {
+    expect(() => normalisePhone('0312345678')).toThrow(expect.objectContaining({ code: 'INVALID_PHONE' }))
+  })
+  test('throws INVALID_PHONE when number is too short after normalisation', () => {
+    expect(() => normalisePhone('01234567')).toThrow(expect.objectContaining({ code: 'INVALID_PHONE' }))
+  })
+  test('throws INVALID_PHONE when number is too long after normalisation', () => {
+    expect(() => normalisePhone('012345678901')).toThrow(expect.objectContaining({ code: 'INVALID_PHONE' }))
+  })
+  test('throws INVALID_PHONE for empty string', () => {
+    expect(() => normalisePhone('')).toThrow(expect.objectContaining({ code: 'INVALID_PHONE' }))
+  })
+})
+
+describe('normaliseUnit', () => {
+  test('uppercases lowercase letters', () => {
+    expect(normaliseUnit('a-12-3')).toBe('A-12-3')
+  })
+  test('trims leading and trailing whitespace', () => {
+    expect(normaliseUnit('  A12  ')).toBe('A12')
+  })
+  test('passes through an already-normalised value unchanged', () => {
+    expect(normaliseUnit('B-05')).toBe('B-05')
+  })
+  test('returns empty string for empty input', () => {
+    expect(normaliseUnit('')).toBe('')
+  })
+})
+
+describe('normaliseBay', () => {
+  test('uppercases lowercase letters', () => {
+    expect(normaliseBay('p-07')).toBe('P-07')
+  })
+  test('trims leading and trailing whitespace', () => {
+    expect(normaliseBay('  B2  ')).toBe('B2')
+  })
+  test('passes through an already-normalised value unchanged', () => {
+    expect(normaliseBay('C-11')).toBe('C-11')
+  })
+  test('returns empty string for empty input', () => {
+    expect(normaliseBay('')).toBe('')
   })
 })

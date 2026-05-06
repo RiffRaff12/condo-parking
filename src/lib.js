@@ -127,6 +127,20 @@ export function buildParkingPass({ fulfiller_bay, start_datetime, end_datetime, 
   }
 }
 
+export function normalisePhone(input) {
+  const digits = String(input).replace(/\D/g, '').replace(/^60/, '0')
+  if (!/^01\d{8,9}$/.test(digits)) throw { code: 'INVALID_PHONE' }
+  return digits
+}
+
+export function normaliseUnit(input) {
+  return String(input).trim().toUpperCase()
+}
+
+export function normaliseBay(input) {
+  return String(input).trim().toUpperCase()
+}
+
 export function validateOnboardingForm({ phone, unit, bay }) {
   if (!phone || !unit || !bay)
     return { ok: false, error: 'Sila isi nombor telefon, unit, dan petak parkir anda.' };

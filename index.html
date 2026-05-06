@@ -48,42 +48,150 @@
   <div class="text-4xl mb-2">🚗</div>
   <h1 class="text-2xl font-extrabold tracking-tight">ParkitJiran</h1>
   <p class="text-sm text-teal-100 mt-1.5 leading-relaxed">Parkir bersama jiran — mudah, cepat, percuma.</p>
-  <button id="logout-btn"
-    class="hidden mt-4 px-4 py-1.5 border border-teal-300 text-teal-100 text-xs font-semibold rounded-full hover:bg-teal-600 transition-colors">
-    Log Keluar
-  </button>
+  <div class="hidden mt-4 flex items-center justify-center gap-2" id="header-auth-btns">
+    <button id="profile-btn"
+      class="px-4 py-1.5 border border-teal-300 text-teal-100 text-xs font-semibold rounded-full hover:bg-teal-600 transition-colors">
+      Profil Saya
+    </button>
+    <button id="logout-btn"
+      class="px-4 py-1.5 border border-teal-300 text-teal-100 text-xs font-semibold rounded-full hover:bg-teal-600 transition-colors">
+      Log Keluar
+    </button>
+  </div>
 </header>
 
 <!-- ═══ Login view ════════════════════════════════════════ -->
 <div id="login-view" class="max-w-lg mx-auto px-4 pt-8 pb-16">
-  <p class="text-[11px] font-extrabold text-teal-700 uppercase tracking-widest mb-5 text-center">Log masuk untuk teruskan</p>
 
-  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
-    <div>
-      <label for="l-phone" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">No. Telefon</label>
-      <input type="tel" id="l-phone" placeholder="contoh: 0123456789" autocomplete="tel"
-        class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
-    </div>
-    <div>
-      <label for="l-unit" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">No. Unit</label>
-      <input type="text" id="l-unit" placeholder="contoh: 1-3-7" autocomplete="off"
-        class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
-    </div>
-    <div>
-      <label for="l-bay" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">No. Petak Parking</label>
-      <input type="text" id="l-bay" placeholder="contoh: B1-42" autocomplete="off"
-        class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
-    </div>
+  <!-- ── Login form ─────────────────────────────────────── -->
+  <div id="login-form">
+    <p class="text-[11px] font-extrabold text-teal-700 uppercase tracking-widest mb-5 text-center">Log masuk untuk teruskan</p>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+      <div>
+        <label for="l-phone" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">No. Telefon</label>
+        <input type="tel" id="l-phone" placeholder="contoh: 0123456789" autocomplete="tel"
+          class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
+      </div>
+      <div>
+        <label for="l-unit" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">No. Unit</label>
+        <input type="text" id="l-unit" placeholder="contoh: 1-3-7" autocomplete="off"
+          class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
+      </div>
+      <div>
+        <label for="l-bay" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">No. Petak Parking</label>
+        <input type="text" id="l-bay" placeholder="contoh: B1-42" autocomplete="off"
+          class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
+      </div>
 
-    <div id="login-error"
-      class="hidden px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-semibold leading-snug"
-      role="alert"></div>
+      <div id="login-error"
+        class="hidden px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-semibold leading-snug"
+        role="alert"></div>
 
-    <button id="login-btn"
-      class="block w-full min-h-[52px] py-3.5 px-4 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white rounded-xl text-base font-bold cursor-pointer transition-colors">
-      Log Masuk
-    </button>
+      <button id="login-btn"
+        class="block w-full min-h-[52px] py-3.5 px-4 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white rounded-xl text-base font-bold cursor-pointer transition-colors">
+        Log Masuk
+      </button>
+    </div>
+    <p class="text-center text-sm text-slate-500 mt-5">
+      Belum daftar?
+      <button id="btn-show-signup" class="text-teal-600 font-semibold hover:underline focus:outline-none">Daftar di sini</button>
+    </p>
   </div>
+
+  <!-- ── Sign-up form ───────────────────────────────────── -->
+  <div id="signup-form" class="hidden">
+
+    <!-- Step 1: details -->
+    <div id="signup-step-1">
+      <p class="text-[11px] font-extrabold text-teal-700 uppercase tracking-widest mb-5 text-center">Daftar akaun baharu</p>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <div>
+          <label for="s-name" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Nama Penuh</label>
+          <input type="text" id="s-name" placeholder="contoh: Ahmad bin Ali" autocomplete="name"
+            class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
+        </div>
+        <div>
+          <label for="s-email" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Alamat E-mel</label>
+          <input type="email" id="s-email" placeholder="contoh: ahmad@email.com" autocomplete="email"
+            class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
+        </div>
+        <div>
+          <label for="s-phone" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">No. Telefon</label>
+          <input type="tel" id="s-phone" placeholder="contoh: 0123456789" autocomplete="tel"
+            class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
+        </div>
+        <div>
+          <label for="s-unit" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">No. Unit</label>
+          <input type="text" id="s-unit" placeholder="contoh: 1-3-7" autocomplete="off"
+            class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
+        </div>
+        <div>
+          <label for="s-bay" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">No. Petak Parking</label>
+          <input type="text" id="s-bay" placeholder="contoh: B1-42" autocomplete="off"
+            class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
+        </div>
+
+        <div class="flex items-start gap-3 pt-1">
+          <input type="checkbox" id="s-terms" class="mt-0.5 w-4 h-4 accent-teal-600 cursor-pointer shrink-0">
+          <label for="s-terms" class="text-sm text-slate-600 leading-snug cursor-pointer">
+            Saya bersetuju dengan
+            <button type="button" id="s-btn-terms" class="text-teal-600 font-semibold hover:underline focus:outline-none">Terma &amp; Syarat</button>
+            ParkitJiran.
+          </label>
+        </div>
+
+        <div id="signup-error"
+          class="hidden px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-semibold leading-snug"
+          role="alert"></div>
+
+        <button id="signup-submit-btn"
+          class="block w-full min-h-[52px] py-3.5 px-4 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white rounded-xl text-base font-bold cursor-pointer transition-colors">
+          Hantar &amp; Dapatkan Kod OTP
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: OTP -->
+    <div id="signup-step-2" class="hidden">
+      <p class="text-[11px] font-extrabold text-teal-700 uppercase tracking-widest mb-5 text-center">Semak e-mel anda</p>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <p id="signup-otp-hint" class="text-sm text-slate-600 leading-relaxed"></p>
+        <div>
+          <label for="s-otp" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Kod OTP (6 digit)</label>
+          <input type="text" id="s-otp" maxlength="6" inputmode="numeric" placeholder="contoh: 123456"
+            class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10 tracking-widest text-center text-xl">
+        </div>
+
+        <div id="signup-otp-error"
+          class="hidden px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-semibold leading-snug"
+          role="alert"></div>
+
+        <button id="signup-otp-btn"
+          class="block w-full min-h-[52px] py-3.5 px-4 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white rounded-xl text-base font-bold cursor-pointer transition-colors">
+          Sahkan Kod
+        </button>
+        <button id="signup-otp-back-btn"
+          class="block w-full text-center text-sm text-slate-400 hover:text-teal-600 py-2 transition-colors focus:outline-none">
+          ← Kembali semak maklumat
+        </button>
+      </div>
+    </div>
+
+    <!-- Success -->
+    <div id="signup-success" class="hidden">
+      <div class="bg-teal-50 border border-teal-200 rounded-2xl p-6 text-center">
+        <div class="text-4xl mb-3">🎉</div>
+        <p class="text-base font-extrabold text-teal-800 mb-2">Pendaftaran berjaya!</p>
+        <p class="text-sm text-teal-700 leading-relaxed">Anda kini boleh log masuk menggunakan nombor telefon, unit, dan petak parking anda.</p>
+      </div>
+    </div>
+
+    <p class="text-center text-sm text-slate-500 mt-5">
+      Sudah ada akaun?
+      <button id="btn-show-login" class="text-teal-600 font-semibold hover:underline focus:outline-none">Log masuk</button>
+    </p>
+  </div>
+
 </div>
 
 <!-- ═══ Main app view ══════════════════════════════════════ -->
@@ -189,7 +297,8 @@
 
   <p class="text-center text-[11px] text-slate-400 mt-8">
     Dengan menggunakan ParkitJiran, anda bersetuju dengan
-    <button id="btn-privacy" class="underline hover:text-teal-600 transition-colors focus:outline-none">Dasar Privasi</button> kami.
+    <button id="btn-privacy" class="underline hover:text-teal-600 transition-colors focus:outline-none">Dasar Privasi</button>
+    dan <button id="btn-terms" class="underline hover:text-teal-600 transition-colors focus:outline-none">Terma &amp; Syarat</button> kami.
   </p>
 
   <!-- ── Feedback form ───────────────────────────────────── -->
@@ -286,11 +395,154 @@
   </div>
 </div>
 
+<!-- ═══ Terms modal ══════════════════════════════════════ -->
+<div id="modal-terms"
+  class="hidden fixed inset-0 z-50 flex items-start justify-center bg-black/40 backdrop-blur-sm p-4 overflow-y-auto"
+  role="dialog" aria-modal="true" aria-labelledby="modal-terms-title">
+  <div class="bg-white rounded-2xl shadow-lg max-w-lg w-full my-8 p-6 relative">
+    <button id="btn-terms-close" aria-label="Tutup"
+      class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors text-xl leading-none focus:outline-none">&#215;</button>
+
+    <h2 id="modal-terms-title" class="text-xl font-extrabold text-teal-700 mb-1">Terma &amp; Syarat</h2>
+    <p class="text-[11px] text-slate-400 mb-6">Kuat kuasa: Mei 2026</p>
+
+    <section class="mb-5">
+      <h3 class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">1. Penafian Penting</h3>
+      <p class="text-sm text-slate-600 leading-relaxed">ParkitJiran dibina secara sukarela oleh seorang penduduk kondominium ini. Aplikasi ini <strong class="font-semibold text-slate-700">bukan perkhidmatan rasmi</strong> dan tidak diendors atau diuruskan oleh pihak pengurusan kondominium. Pembangun aplikasi tidak mendapat sebarang manfaat kewangan daripada aplikasi ini.</p>
+    </section>
+
+    <section class="mb-5">
+      <h3 class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">2. Data Yang Dikumpul</h3>
+      <p class="text-sm text-slate-600 leading-relaxed">Semasa pendaftaran, kami mengumpul maklumat berikut: <strong class="font-semibold text-slate-700">nama, alamat e-mel, nombor telefon, nombor unit, dan nombor petak parking</strong>. Data ini digunakan semata-mata untuk mengesahkan identiti anda sebagai penduduk dan membolehkan jiran-jiran berkomunikasi berkenaan tawaran parking.</p>
+    </section>
+
+    <section class="mb-5">
+      <h3 class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">3. Perkongsian Data</h3>
+      <p class="text-sm text-slate-600 leading-relaxed">Maklumat peribadi anda <strong class="font-semibold text-slate-700">tidak akan dikongsi, dijual, atau dipindahkan</strong> kepada mana-mana pihak ketiga.</p>
+    </section>
+
+    <section class="mb-5">
+      <h3 class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">4. Penafian Liabiliti</h3>
+      <p class="text-sm text-slate-600 leading-relaxed mb-2">Pembangun aplikasi <strong class="font-semibold text-slate-700">tidak bertanggungjawab</strong> terhadap:</p>
+      <ul class="text-sm text-slate-600 leading-relaxed list-disc list-inside space-y-1">
+        <li>Sebarang pertikaian antara penduduk berkenaan tawaran atau penggunaan parking.</li>
+        <li>Maklumat tidak tepat atau palsu yang dikemukakan oleh pengguna semasa pendaftaran.</li>
+        <li>Gangguan perkhidmatan, masa henti (<em>downtime</em>), atau kehilangan data.</li>
+        <li>Sebarang kerugian langsung atau tidak langsung yang timbul daripada penggunaan aplikasi ini.</li>
+      </ul>
+    </section>
+
+    <section class="mb-5">
+      <h3 class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">5. Hak Anda di Bawah PDPA</h3>
+      <p class="text-sm text-slate-600 leading-relaxed mb-2">Di bawah Akta Perlindungan Data Peribadi 2010 (PDPA Malaysia), anda berhak untuk:</p>
+      <ul class="text-sm text-slate-600 leading-relaxed list-disc list-inside space-y-1">
+        <li><strong class="font-semibold text-slate-700">Mengakses</strong> data peribadi anda — lihat profil anda dalam apl.</li>
+        <li><strong class="font-semibold text-slate-700">Membetulkan</strong> data yang tidak tepat — edit profil anda dalam apl.</li>
+        <li><strong class="font-semibold text-slate-700">Menarik balik persetujuan</strong> — padam akaun anda melalui bahagian profil.</li>
+        <li><strong class="font-semibold text-slate-700">Pemadaman data</strong> — padam akaun anda untuk mengalih keluar semua maklumat peribadi anda.</li>
+      </ul>
+      <p class="text-sm text-slate-600 leading-relaxed mt-2">Untuk pertanyaan berkenaan privasi, gunakan borang maklum balas dalam apl.</p>
+    </section>
+
+    <section class="mb-6">
+      <h3 class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">6. Penggunaan Bertanggungjawab</h3>
+      <p class="text-sm text-slate-600 leading-relaxed">Dengan menggunakan aplikasi ini, anda bersetuju untuk memberikan maklumat yang benar dan menggunakan aplikasi ini dengan niat baik. Penyalahgunaan boleh menyebabkan akaun anda dipadam.</p>
+    </section>
+
+    <button id="btn-terms-close-bottom"
+      class="block w-full min-h-[48px] py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold cursor-pointer transition-colors">
+      Faham &amp; Setuju
+    </button>
+  </div>
+</div>
+
+<!-- ═══ Profile modal ═════════════════════════════════════ -->
+<div id="modal-profile"
+  class="hidden fixed inset-0 z-50 flex items-start justify-center bg-black/40 backdrop-blur-sm p-4 overflow-y-auto"
+  role="dialog" aria-modal="true" aria-labelledby="modal-profile-title">
+  <div class="bg-white rounded-2xl shadow-lg max-w-lg w-full my-8 p-6 relative">
+    <button id="btn-profile-close" aria-label="Tutup"
+      class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors text-xl leading-none focus:outline-none">&#215;</button>
+
+    <h2 id="modal-profile-title" class="text-xl font-extrabold text-teal-700 mb-6">Profil Saya</h2>
+
+    <!-- View/edit fields -->
+    <div class="space-y-4 mb-6">
+      <div>
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Nama</label>
+        <input type="text" id="profile-name" autocomplete="name"
+          class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">E-mel</label>
+        <div class="flex gap-2">
+          <input type="email" id="profile-email" autocomplete="email"
+            class="flex-1 min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
+          <button id="profile-email-otp-btn"
+            class="hidden shrink-0 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold rounded-xl transition-colors cursor-pointer">
+            Sahkan
+          </button>
+        </div>
+        <div id="profile-email-otp-row" class="hidden mt-2 flex gap-2">
+          <input type="text" id="profile-email-otp" maxlength="6" placeholder="Kod OTP"
+            class="flex-1 min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
+          <button id="profile-email-otp-verify-btn"
+            class="shrink-0 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition-colors cursor-pointer">
+            Hantar
+          </button>
+        </div>
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">No. Telefon</label>
+        <input type="tel" id="profile-phone" readonly disabled autocomplete="tel"
+          class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-100 rounded-xl text-base text-slate-400 bg-slate-50 appearance-none">
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">No. Unit</label>
+        <input type="text" id="profile-unit" readonly disabled autocomplete="off"
+          class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-100 rounded-xl text-base text-slate-400 bg-slate-50 appearance-none">
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">No. Petak Parking</label>
+        <input type="text" id="profile-bay" autocomplete="off"
+          class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
+      </div>
+    </div>
+
+    <div id="profile-msg" class="hidden mb-4 px-4 py-3 rounded-xl text-sm font-semibold" role="status"></div>
+
+    <button id="profile-save-btn"
+      class="block w-full min-h-[48px] py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold cursor-pointer transition-colors mb-3">
+      Simpan Perubahan
+    </button>
+
+    <button id="profile-delete-btn"
+      class="block w-full min-h-[48px] py-3 bg-white hover:bg-red-50 text-red-500 hover:text-red-600 border border-red-200 rounded-xl text-sm font-bold cursor-pointer transition-colors">
+      Padam Akaun Saya
+    </button>
+
+    <!-- Delete confirmation -->
+    <div id="profile-delete-confirm" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+      <p class="text-sm text-red-700 font-semibold mb-3">Anda pasti? Tindakan ini tidak boleh dibatalkan. Semua permintaan terbuka anda akan dibatalkan dan data anda akan dipadam.</p>
+      <div class="flex gap-2">
+        <button id="profile-delete-cancel-btn"
+          class="flex-1 min-h-[44px] py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-bold cursor-pointer hover:bg-slate-50 transition-colors">
+          Batal
+        </button>
+        <button id="profile-delete-confirm-btn"
+          class="flex-1 min-h-[44px] py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold cursor-pointer transition-colors">
+          Ya, Padam
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { createClient } from '@supabase/supabase-js'
 import { createAuth } from './src/auth.js'
 import { createDb }   from './src/db.js'
-import { esc, sanitize, fmtSlot, fmtMalay, validateRequestForm, buildWhatsAppFulfilLink, computeToDefaults } from './src/lib.js'
+import { esc, sanitize, fmtSlot, fmtMalay, validateRequestForm, buildWhatsAppFulfilLink, computeToDefaults, normalisePhone, normaliseUnit, normaliseBay } from './src/lib.js'
 import { registerPush, shouldShowPushButton, isStandalone, isIOS, isAndroidChrome, isIOSBelow16_4 } from './src/pwa.js'
 
 /* ── Supabase client ──────────────────────────────────── */
@@ -365,20 +617,22 @@ const notifyRevoked             = (id) => notifyEvent(id, 'revoked')
 const notifyRequesterCancelled  = (id) => notifyEvent(id, 'requester_cancelled')
 
 /* ── Views ────────────────────────────────────────────── */
-const loginView = document.getElementById('login-view')
-const appView   = document.getElementById('app-view')
-const logoutBtn = document.getElementById('logout-btn')
+const loginView      = document.getElementById('login-view')
+const appView        = document.getElementById('app-view')
+const logoutBtn      = document.getElementById('logout-btn')
+const headerAuthBtns = document.getElementById('header-auth-btns')
 
 function showLogin() {
   loginView.classList.remove('hidden')
   appView.classList.add('hidden')
-  logoutBtn.classList.add('hidden')
+  headerAuthBtns.classList.add('hidden')
+  showLoginForm()
 }
 
 function showApp() {
   loginView.classList.add('hidden')
   appView.classList.remove('hidden')
-  logoutBtn.classList.remove('hidden')
+  headerAuthBtns.classList.remove('hidden')
   setupNotifications()
   updateButtonGate()
 
@@ -396,11 +650,23 @@ const loginBtn   = document.getElementById('login-btn')
 
 loginBtn.addEventListener('click', async () => {
   loginErrEl.classList.add('hidden')
-  const phone = sanitize(document.getElementById('l-phone').value, 20)
-  const unit  = sanitize(document.getElementById('l-unit').value, 20)
-  const bay   = sanitize(document.getElementById('l-bay').value, 20)
-  if (!phone || !unit || !bay) {
+  const rawPhone = sanitize(document.getElementById('l-phone').value, 30)
+  const rawUnit  = sanitize(document.getElementById('l-unit').value, 20)
+  const rawBay   = sanitize(document.getElementById('l-bay').value, 20)
+  if (!rawPhone || !rawUnit || !rawBay) {
     loginErrEl.textContent = 'Sila isi semua ruangan.'
+    loginErrEl.classList.remove('hidden')
+    return
+  }
+  let phone, unit, bay
+  try {
+    phone = normalisePhone(rawPhone)
+    unit  = normaliseUnit(rawUnit)
+    bay   = normaliseBay(rawBay)
+  } catch (e) {
+    loginErrEl.textContent = e.code === 'INVALID_PHONE'
+      ? 'Nombor telefon tidak sah. Sila gunakan nombor mudah alih Malaysia (cth: 0123456789). Jika anda menggunakan nombor asing, sila hubungi kami melalui borang maklum balas.'
+      : 'Input tidak sah.'
     loginErrEl.classList.remove('hidden')
     return
   }
@@ -816,6 +1082,337 @@ document.getElementById('feedback-btn').addEventListener('click', async () => {
   }
 })
 
+/* ── Sign-up view toggle ──────────────────────────────── */
+function showLoginForm() {
+  document.getElementById('login-form').classList.remove('hidden')
+  document.getElementById('signup-form').classList.add('hidden')
+}
+function showSignupForm() {
+  document.getElementById('login-form').classList.add('hidden')
+  document.getElementById('signup-form').classList.remove('hidden')
+  document.getElementById('signup-step-1').classList.remove('hidden')
+  document.getElementById('signup-step-2').classList.add('hidden')
+  document.getElementById('signup-success').classList.add('hidden')
+}
+document.getElementById('btn-show-signup').addEventListener('click', showSignupForm)
+document.getElementById('btn-show-login').addEventListener('click', showLoginForm)
+
+/* ── Sign-up step 1 ───────────────────────────────────── */
+let pendingSignupEmail = ''
+
+document.getElementById('signup-submit-btn').addEventListener('click', async () => {
+  const errEl = document.getElementById('signup-error')
+  errEl.classList.add('hidden')
+
+  const name  = sanitize(document.getElementById('s-name').value.trim(), 100)
+  const email = sanitize(document.getElementById('s-email').value.trim(), 100)
+  const rawPhone = sanitize(document.getElementById('s-phone').value, 30)
+  const rawUnit  = sanitize(document.getElementById('s-unit').value, 20)
+  const rawBay   = sanitize(document.getElementById('s-bay').value, 20)
+  const agreed   = document.getElementById('s-terms').checked
+
+  if (!name || !email || !rawPhone || !rawUnit || !rawBay) {
+    errEl.textContent = 'Sila isi semua ruangan.'
+    errEl.classList.remove('hidden')
+    return
+  }
+  if (!agreed) {
+    errEl.textContent = 'Sila bersetuju dengan Terma & Syarat untuk meneruskan.'
+    errEl.classList.remove('hidden')
+    return
+  }
+
+  let phone, unit, bay
+  try {
+    phone = normalisePhone(rawPhone)
+    unit  = normaliseUnit(rawUnit)
+    bay   = normaliseBay(rawBay)
+  } catch (e) {
+    errEl.textContent = e.code === 'INVALID_PHONE'
+      ? 'Nombor telefon tidak sah. Sila gunakan nombor mudah alih Malaysia (cth: 0123456789). Jika anda menggunakan nombor asing, sila hubungi kami melalui borang maklum balas.'
+      : 'Input tidak sah.'
+    errEl.classList.remove('hidden')
+    return
+  }
+
+  const btn = document.getElementById('signup-submit-btn')
+  btn.disabled = true
+  btn.textContent = 'Menghantar...'
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON },
+      body: JSON.stringify({ name, email, phone, unit_number: unit, bay_number: bay }),
+    })
+    const data = await res.json()
+    if (!res.ok) {
+      if (data.code === 'DUPLICATE') {
+        errEl.textContent = 'Anda sudah berdaftar. Sila log masuk.'
+      } else {
+        errEl.textContent = data.message || 'Ralat pelayan. Sila cuba lagi.'
+      }
+      errEl.classList.remove('hidden')
+      return
+    }
+    pendingSignupEmail = email
+    document.getElementById('signup-otp-hint').textContent =
+      `Kod OTP telah dihantar ke ${email}. Sah selama 15 minit.`
+    document.getElementById('signup-step-1').classList.add('hidden')
+    document.getElementById('signup-step-2').classList.remove('hidden')
+    document.getElementById('s-otp').value = ''
+    document.getElementById('s-otp').focus()
+  } catch {
+    errEl.textContent = 'Gagal menghubungi pelayan. Sila cuba lagi.'
+    errEl.classList.remove('hidden')
+  } finally {
+    btn.disabled = false
+    btn.textContent = 'Hantar & Dapatkan Kod OTP'
+  }
+})
+
+/* ── Sign-up step 2 (OTP) ─────────────────────────────── */
+document.getElementById('signup-otp-btn').addEventListener('click', async () => {
+  const errEl = document.getElementById('signup-otp-error')
+  errEl.classList.add('hidden')
+  const otp = document.getElementById('s-otp').value.trim()
+  if (otp.length !== 6) {
+    errEl.textContent = 'Sila masukkan kod 6 digit.'
+    errEl.classList.remove('hidden')
+    return
+  }
+  const btn = document.getElementById('signup-otp-btn')
+  btn.disabled = true
+  btn.textContent = 'Mengesahkan...'
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON },
+      body: JSON.stringify({ email: pendingSignupEmail, otp_code: otp }),
+    })
+    const data = await res.json()
+    if (!res.ok) {
+      errEl.textContent = data.code === 'EXPIRED'
+        ? 'Kod OTP telah tamat tempoh. Sila kembali dan daftar semula.'
+        : 'Kod OTP tidak sah. Sila semak dan cuba lagi.'
+      errEl.classList.remove('hidden')
+      return
+    }
+    document.getElementById('signup-step-2').classList.add('hidden')
+    document.getElementById('signup-success').classList.remove('hidden')
+    setTimeout(() => {
+      showLoginForm()
+      const phone = document.getElementById('s-phone').value
+      const unit  = document.getElementById('s-unit').value
+      document.getElementById('l-phone').value = phone
+      document.getElementById('l-unit').value  = unit
+      document.getElementById('l-phone').focus()
+    }, 2500)
+  } catch {
+    errEl.textContent = 'Gagal menghubungi pelayan. Sila cuba lagi.'
+    errEl.classList.remove('hidden')
+  } finally {
+    btn.disabled = false
+    btn.textContent = 'Sahkan Kod'
+  }
+})
+
+document.getElementById('signup-otp-back-btn').addEventListener('click', () => {
+  document.getElementById('signup-step-2').classList.add('hidden')
+  document.getElementById('signup-otp-error').classList.add('hidden')
+  document.getElementById('signup-step-1').classList.remove('hidden')
+})
+
+/* ── Terms modal ──────────────────────────────────────── */
+const termsModal = document.getElementById('modal-terms')
+function openTerms()  { termsModal.classList.remove('hidden'); termsModal.focus() }
+function closeTerms() { termsModal.classList.add('hidden') }
+document.getElementById('btn-terms').addEventListener('click', openTerms)
+document.getElementById('s-btn-terms').addEventListener('click', openTerms)
+document.getElementById('btn-terms-close').addEventListener('click', closeTerms)
+document.getElementById('btn-terms-close-bottom').addEventListener('click', closeTerms)
+termsModal.addEventListener('click', e => { if (e.target === termsModal) closeTerms() })
+
+/* ── Profile modal ────────────────────────────────────── */
+const profileModal = document.getElementById('modal-profile')
+
+function openProfile() {
+  const meta = currentSession?.user?.user_metadata || {}
+  document.getElementById('profile-name').value  = meta.name  || ''
+  document.getElementById('profile-email').value = meta.email || ''
+  document.getElementById('profile-phone').value = meta.phone || ''
+  document.getElementById('profile-unit').value  = meta.unit  || ''
+  document.getElementById('profile-bay').value   = meta.bay   || ''
+  document.getElementById('profile-msg').classList.add('hidden')
+  document.getElementById('profile-delete-confirm').classList.add('hidden')
+  document.getElementById('profile-email-otp-row').classList.add('hidden')
+  document.getElementById('profile-email-otp-btn').classList.add('hidden')
+  profileModal.classList.remove('hidden')
+  profileModal.focus()
+}
+function closeProfile() { profileModal.classList.add('hidden') }
+
+document.getElementById('profile-btn').addEventListener('click', openProfile)
+document.getElementById('btn-profile-close').addEventListener('click', closeProfile)
+profileModal.addEventListener('click', e => { if (e.target === profileModal) closeProfile() })
+
+document.getElementById('profile-email').addEventListener('input', () => {
+  const original = currentSession?.user?.user_metadata?.email || ''
+  const changed  = document.getElementById('profile-email').value.trim() !== original
+  document.getElementById('profile-email-otp-btn').classList.toggle('hidden', !changed)
+  document.getElementById('profile-email-otp-row').classList.add('hidden')
+})
+
+document.getElementById('profile-email-otp-btn').addEventListener('click', async () => {
+  const newEmail = document.getElementById('profile-email').value.trim()
+  const btn = document.getElementById('profile-email-otp-btn')
+  btn.disabled = true
+  btn.textContent = 'Menghantar...'
+  try {
+    const meta = currentSession.user.user_metadata
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-otp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${currentSession.access_token}`,
+      },
+      body: JSON.stringify({
+        name: meta.name, email: newEmail,
+        phone: meta.phone, unit_number: meta.unit, bay_number: meta.bay,
+        mode: 'email_change',
+      }),
+    })
+    if (res.ok) {
+      document.getElementById('profile-email-otp-row').classList.remove('hidden')
+      document.getElementById('profile-email-otp').focus()
+    } else {
+      showProfileMsg('Gagal menghantar OTP. Sila cuba lagi.', 'error')
+    }
+  } catch {
+    showProfileMsg('Gagal menghubungi pelayan.', 'error')
+  } finally {
+    btn.disabled = false
+    btn.textContent = 'Sahkan'
+  }
+})
+
+document.getElementById('profile-email-otp-verify-btn').addEventListener('click', async () => {
+  const otp   = document.getElementById('profile-email-otp').value.trim()
+  const email = document.getElementById('profile-email').value.trim()
+  if (otp.length !== 6) { showProfileMsg('Sila masukkan kod 6 digit.', 'error'); return }
+  const btn = document.getElementById('profile-email-otp-verify-btn')
+  btn.disabled = true
+  btn.textContent = 'Mengesahkan...'
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/verify-otp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${currentSession.access_token}`,
+      },
+      body: JSON.stringify({ email, otp_code: otp, mode: 'email_change', user_id: currentSession.user.id }),
+    })
+    if (res.ok) {
+      document.getElementById('profile-email-otp-row').classList.add('hidden')
+      document.getElementById('profile-email-otp-btn').classList.add('hidden')
+      showProfileMsg('E-mel berjaya dikemaskini.', 'success')
+      currentSession.user.user_metadata.email = email
+    } else {
+      showProfileMsg('Kod OTP tidak sah atau telah tamat tempoh.', 'error')
+    }
+  } catch {
+    showProfileMsg('Gagal menghubungi pelayan.', 'error')
+  } finally {
+    btn.disabled = false
+    btn.textContent = 'Hantar'
+  }
+})
+
+document.getElementById('profile-save-btn').addEventListener('click', async () => {
+  const name = sanitize(document.getElementById('profile-name').value.trim(), 100)
+  const rawBay = sanitize(document.getElementById('profile-bay').value, 20)
+  if (!name || !rawBay) { showProfileMsg('Nama dan petak parking diperlukan.', 'error'); return }
+  const bay = normaliseBay(rawBay)
+  const btn = document.getElementById('profile-save-btn')
+  btn.disabled = true
+  btn.textContent = 'Menyimpan...'
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/update-profile`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${currentSession.access_token}`,
+      },
+      body: JSON.stringify({ name, bay }),
+    })
+    if (res.ok) {
+      currentSession.user.user_metadata.name = name
+      currentSession.user.user_metadata.bay  = bay
+      myBay = bay
+      localStorage.setItem('pkjiran_bay', bay)
+      showProfileMsg('Profil berjaya dikemaskini.', 'success')
+    } else {
+      showProfileMsg('Ralat semasa menyimpan. Sila cuba lagi.', 'error')
+    }
+  } catch {
+    showProfileMsg('Gagal menghubungi pelayan.', 'error')
+  } finally {
+    btn.disabled = false
+    btn.textContent = 'Simpan Perubahan'
+  }
+})
+
+function showProfileMsg(msg, type) {
+  const el = document.getElementById('profile-msg')
+  el.textContent = msg
+  el.className = type === 'success'
+    ? 'mb-4 px-4 py-3 rounded-xl text-sm font-semibold bg-teal-50 text-teal-800 border border-teal-200'
+    : 'mb-4 px-4 py-3 rounded-xl text-sm font-semibold bg-red-50 text-red-600 border border-red-200'
+  el.classList.remove('hidden')
+}
+
+document.getElementById('profile-delete-btn').addEventListener('click', () => {
+  document.getElementById('profile-delete-confirm').classList.remove('hidden')
+  document.getElementById('profile-delete-btn').classList.add('hidden')
+})
+document.getElementById('profile-delete-cancel-btn').addEventListener('click', () => {
+  document.getElementById('profile-delete-confirm').classList.add('hidden')
+  document.getElementById('profile-delete-btn').classList.remove('hidden')
+})
+document.getElementById('profile-delete-confirm-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('profile-delete-confirm-btn')
+  btn.disabled = true
+  btn.textContent = 'Memadam...'
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/delete-account`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${currentSession.access_token}`,
+      },
+    })
+    if (res.ok) {
+      closeProfile()
+      if (realtimeChannel) { supabase.removeChannel(realtimeChannel); realtimeChannel = null }
+      if (pollInterval)    { clearInterval(pollInterval); pollInterval = null }
+      currentSession = null
+      myPhone = null
+      myBay = null
+      localStorage.removeItem('pkjiran_phone')
+      localStorage.removeItem('pkjiran_bay')
+      showLogin()
+    } else {
+      showProfileMsg('Ralat semasa memadam akaun. Sila cuba lagi.', 'error')
+      btn.disabled = false
+      btn.textContent = 'Ya, Padam'
+    }
+  } catch {
+    showProfileMsg('Gagal menghubungi pelayan.', 'error')
+    btn.disabled = false
+    btn.textContent = 'Ya, Padam'
+  }
+})
+
 /* ── Privacy modal ────────────────────────────────────── */
 const privacyModal = document.getElementById('modal-privacy')
 function openPrivacy()  { privacyModal.classList.remove('hidden'); privacyModal.focus() }
@@ -824,7 +1421,9 @@ document.getElementById('btn-privacy').addEventListener('click', openPrivacy)
 document.getElementById('btn-privacy-close').addEventListener('click', closePrivacy)
 document.getElementById('btn-privacy-close-bottom').addEventListener('click', closePrivacy)
 privacyModal.addEventListener('click', e => { if (e.target === privacyModal) closePrivacy() })
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closePrivacy() })
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closePrivacy(); closeTerms(); closeProfile() }
+})
 
 /* ── Init ─────────────────────────────────────────────── */
 async function init() {
