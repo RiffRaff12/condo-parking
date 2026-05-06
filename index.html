@@ -146,7 +146,7 @@
 
         <button id="signup-submit-btn"
           class="block w-full min-h-[52px] py-3.5 px-4 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white rounded-xl text-base font-bold cursor-pointer transition-colors">
-          Hantar &amp; Dapatkan Kod OTP
+          Daftar
         </button>
       </div>
     </div>
@@ -475,22 +475,8 @@
       </div>
       <div>
         <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">E-mel</label>
-        <div class="flex gap-2">
-          <input type="email" id="profile-email" autocomplete="email"
-            class="flex-1 min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
-          <button id="profile-email-otp-btn"
-            class="hidden shrink-0 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold rounded-xl transition-colors cursor-pointer">
-            Sahkan
-          </button>
-        </div>
-        <div id="profile-email-otp-row" class="hidden mt-2 flex gap-2">
-          <input type="text" id="profile-email-otp" maxlength="6" placeholder="Kod OTP"
-            class="flex-1 min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
-          <button id="profile-email-otp-verify-btn"
-            class="shrink-0 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition-colors cursor-pointer">
-            Hantar
-          </button>
-        </div>
+        <input type="email" id="profile-email" autocomplete="email"
+          class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
       </div>
       <div>
         <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">No. Telefon</label>
@@ -1097,13 +1083,7 @@ function showSignupForm() {
 document.getElementById('btn-show-signup').addEventListener('click', showSignupForm)
 document.getElementById('btn-show-login').addEventListener('click', showLoginForm)
 
-/* ── Sign-up step 1 ───────────────────────────────────── */
-let pendingSignupEmail = ''
-let pendingSignupName  = ''
-let pendingSignupPhone = ''
-let pendingSignupUnit  = ''
-let pendingSignupBay   = ''
-
+/* ── Sign-up ───────────────────────────────────────────── */
 document.getElementById('signup-submit-btn').addEventListener('click', async () => {
   const errEl = document.getElementById('signup-error')
   errEl.classList.add('hidden')
@@ -1141,100 +1121,15 @@ document.getElementById('signup-submit-btn').addEventListener('click', async () 
 
   const btn = document.getElementById('signup-submit-btn')
   btn.disabled = true
-  btn.textContent = 'Menyemak...'
+  btn.textContent = 'Mendaftar...'
 
   try {
-    // Duplicate check first
-    const checkRes = await fetch(`${SUPABASE_URL}/functions/v1/send-otp`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON}` },
-      body: JSON.stringify({ phone, unit_number: unit, bay_number: bay }),
-    })
-    const checkData = await checkRes.json()
-    if (!checkRes.ok) {
-      errEl.textContent = checkData.code === 'DUPLICATE'
-        ? 'Anda sudah berdaftar. Sila log masuk.'
-        : checkData.message || 'Ralat pelayan. Sila cuba lagi.'
-      errEl.classList.remove('hidden')
-      return
-    }
-
-    // Send OTP via Supabase Auth
-    btn.textContent = 'Menghantar OTP...'
-    const { error: otpErr } = await supabase.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: true },
-    })
-    if (otpErr) {
-      errEl.textContent = otpErr.message || 'Gagal menghantar OTP. Sila cuba lagi.'
-      errEl.classList.remove('hidden')
-      return
-    }
-
-    pendingSignupEmail = email
-    pendingSignupName  = name
-    pendingSignupPhone = phone
-    pendingSignupUnit  = unit
-    pendingSignupBay   = bay
-
-    document.getElementById('signup-otp-hint').textContent =
-      `Kod OTP telah dihantar ke ${email}. Sila semak inbox atau folder spam anda.`
-    document.getElementById('signup-step-1').classList.add('hidden')
-    document.getElementById('signup-step-2').classList.remove('hidden')
-    document.getElementById('s-otp').value = ''
-    document.getElementById('s-otp').focus()
-  } catch {
-    errEl.textContent = 'Gagal menghubungi pelayan. Sila cuba lagi.'
-    errEl.classList.remove('hidden')
-  } finally {
-    btn.disabled = false
-    btn.textContent = 'Hantar & Dapatkan Kod OTP'
-  }
-})
-
-/* ── Sign-up step 2 (OTP) ─────────────────────────────── */
-document.getElementById('signup-otp-btn').addEventListener('click', async () => {
-  const errEl = document.getElementById('signup-otp-error')
-  errEl.classList.add('hidden')
-  const otp = document.getElementById('s-otp').value.trim()
-  if (otp.length !== 6) {
-    errEl.textContent = 'Sila masukkan kod 6 digit.'
-    errEl.classList.remove('hidden')
-    return
-  }
-  const btn = document.getElementById('signup-otp-btn')
-  btn.disabled = true
-  btn.textContent = 'Mengesahkan...'
-  try {
-    const { data: verifyData, error: verifyErr } = await supabase.auth.verifyOtp({
-      email: pendingSignupEmail,
-      token: otp,
-      type: 'email',
-    })
-    if (verifyErr) {
-      errEl.textContent = 'Kod OTP tidak sah atau telah tamat tempoh. Sila semak dan cuba lagi.'
-      errEl.classList.remove('hidden')
-      return
-    }
-
-    // Complete signup — insert into residents_directory and delete the temp auth user
     const res = await fetch(`${SUPABASE_URL}/functions/v1/complete-signup`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${verifyData.session.access_token}`,
-      },
-      body: JSON.stringify({
-        name:        pendingSignupName,
-        email:       pendingSignupEmail,
-        phone:       pendingSignupPhone,
-        unit_number: pendingSignupUnit,
-        bay_number:  pendingSignupBay,
-      }),
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON },
+      body: JSON.stringify({ name, email, phone, unit_number: unit, bay_number: bay }),
     })
     const data = await res.json()
-    await supabase.auth.signOut()
-
     if (!res.ok) {
       errEl.textContent = data.code === 'DUPLICATE'
         ? 'Anda sudah berdaftar. Sila log masuk.'
@@ -1243,7 +1138,6 @@ document.getElementById('signup-otp-btn').addEventListener('click', async () => 
       return
     }
 
-    document.getElementById('signup-step-2').classList.add('hidden')
     document.getElementById('signup-success').classList.remove('hidden')
     setTimeout(() => {
       showLoginForm()
@@ -1256,14 +1150,8 @@ document.getElementById('signup-otp-btn').addEventListener('click', async () => 
     errEl.classList.remove('hidden')
   } finally {
     btn.disabled = false
-    btn.textContent = 'Sahkan Kod'
+    btn.textContent = 'Daftar'
   }
-})
-
-document.getElementById('signup-otp-back-btn').addEventListener('click', () => {
-  document.getElementById('signup-step-2').classList.add('hidden')
-  document.getElementById('signup-otp-error').classList.add('hidden')
-  document.getElementById('signup-step-1').classList.remove('hidden')
 })
 
 /* ── Terms modal ──────────────────────────────────────── */
@@ -1288,8 +1176,6 @@ function openProfile() {
   document.getElementById('profile-bay').value   = meta.bay   || ''
   document.getElementById('profile-msg').classList.add('hidden')
   document.getElementById('profile-delete-confirm').classList.add('hidden')
-  document.getElementById('profile-email-otp-row').classList.add('hidden')
-  document.getElementById('profile-email-otp-btn').classList.add('hidden')
   profileModal.classList.remove('hidden')
   profileModal.focus()
 }
@@ -1298,12 +1184,6 @@ function closeProfile() { profileModal.classList.add('hidden') }
 document.getElementById('profile-btn').addEventListener('click', openProfile)
 document.getElementById('btn-profile-close').addEventListener('click', closeProfile)
 profileModal.addEventListener('click', e => { if (e.target === profileModal) closeProfile() })
-
-document.getElementById('profile-email').addEventListener('input', () => {
-  const original = currentSession?.user?.user_metadata?.email || ''
-  const changed  = document.getElementById('profile-email').value.trim() !== original
-  document.getElementById('profile-email-otp-btn').classList.toggle('hidden', !changed)
-})
 
 document.getElementById('profile-save-btn').addEventListener('click', async () => {
   const name  = sanitize(document.getElementById('profile-name').value.trim(), 100)
@@ -1329,7 +1209,6 @@ document.getElementById('profile-save-btn').addEventListener('click', async () =
       currentSession.user.user_metadata.email = email
       myBay = bay
       localStorage.setItem('pkjiran_bay', bay)
-      document.getElementById('profile-email-otp-btn').classList.add('hidden')
       showProfileMsg('Profil berjaya dikemaskini.', 'success')
     } else {
       showProfileMsg('Ralat semasa menyimpan. Sila cuba lagi.', 'error')
