@@ -536,7 +536,10 @@ toggleBtn.addEventListener('click', () => {
   toggleBtn.querySelector('.icon').style.transform = isOpen ? 'rotate(45deg)' : ''
   document.getElementById('form-error').classList.add('hidden')
   document.getElementById('form-success').classList.add('hidden')
-  if (isOpen) { setFormDefaults(); document.getElementById('f-from-date').focus() }
+  if (isOpen) {
+    if (!document.getElementById('f-from-date').value) setFormDefaults()
+    document.getElementById('f-from-date').focus()
+  }
 })
 
 /* ── Form submit ──────────────────────────────────────── */
@@ -576,6 +579,9 @@ submitBtn.addEventListener('click', async () => {
       toggleBtn.setAttribute('aria-expanded', 'false')
       toggleBtn.querySelector('.icon').style.transform = ''
       sucEl.classList.add('hidden')
+      ;['f-from-date','f-from-time','f-to-date','f-to-time'].forEach(id => {
+        document.getElementById(id).value = ''
+      })
     }, 1800)
     await renderList()
   } catch (e) {
