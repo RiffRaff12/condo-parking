@@ -305,8 +305,9 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON)
 const auth     = createAuth(supabase)
 const db       = createDb(supabase)
 
-let currentSession = null
-let swRegistration = null
+let currentSession   = null
+let swRegistration   = null
+let realtimeChannel  = null
 
 /* ── Service worker ───────────────────────────────────── */
 async function registerSW() {
@@ -377,6 +378,11 @@ function showApp() {
   logoutBtn.classList.remove('hidden')
   setupNotifications()
   updateButtonGate()
+
+  realtimeChannel = supabase
+    .channel('requests-live')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'requests' }, () => renderList())
+    .subscribe()
 }
 
 /* ── Login ────────────────────────────────────────────── */
@@ -409,6 +415,7 @@ loginBtn.addEventListener('click', async () => {
 
 /* ── Logout ───────────────────────────────────────────── */
 logoutBtn.addEventListener('click', async () => {
+  if (realtimeChannel) { supabase.removeChannel(realtimeChannel); realtimeChannel = null }
   await auth.signOut()
   currentSession = null
   showLogin()
