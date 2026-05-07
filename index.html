@@ -32,12 +32,6 @@
   }
   /* Smooth transitions on icon/caret */
   .icon, .closed-caret { display: inline-block; transition: transform 0.2s ease; }
-  /* Install/notif gate: pulse the notif banner */
-  @keyframes pulse-ring {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(13,148,136,0.5); }
-    50%       { box-shadow: 0 0 0 8px rgba(13,148,136,0); }
-  }
-  .pulse-ring { animation: pulse-ring 0.5s ease-out 3; }
 </style>
 </head>
 
@@ -197,16 +191,6 @@
 <!-- ═══ Main app view ══════════════════════════════════════ -->
 <main id="app-view" class="hidden max-w-lg mx-auto px-4 pt-5 pb-16">
 
-  <!-- Notifications banner -->
-  <div id="notif-banner" class="hidden mb-4 flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-slate-200">
-    <span class="text-lg">🔔</span>
-    <p class="text-xs text-slate-600 flex-1">Aktifkan notifikasi supaya anda tahu bila permintaan anda dipenuhi.</p>
-    <button id="notif-btn"
-      class="shrink-0 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer">
-      Aktif
-    </button>
-  </div>
-
   <!-- Toggle form button -->
   <button id="toggle-form-btn"
     class="flex items-center justify-center gap-2.5 w-full min-h-[54px] px-5 py-4 bg-teal-600 text-white rounded-2xl font-bold text-base transition-colors mb-1 shadow-lg shadow-teal-600/25"
@@ -214,7 +198,6 @@
     <span class="icon text-xl leading-none font-light">+</span>
     <span>Buat Permintaan Parkir</span>
   </button>
-  <p id="toggle-form-hint" class="hidden text-center text-xs text-slate-400 mb-3 mt-1"></p>
 
   <!-- ── Request form card ───────────────────────────────── -->
   <div id="form-card" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 mb-6 overflow-hidden"
@@ -316,31 +299,6 @@
 
 </main>
 
-<!-- ═══ Install modal ════════════════════════════════════ -->
-<div id="modal-install"
-  class="hidden fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm p-4"
-  role="dialog" aria-modal="true" aria-labelledby="modal-install-title">
-  <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 mb-2 relative">
-    <button id="btn-install-close" aria-label="Tutup"
-      class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors text-xl leading-none focus:outline-none">&#215;</button>
-    <p class="text-base font-extrabold text-slate-800 mb-1" id="modal-install-title">Tambah ke Skrin Utama</p>
-    <p class="text-sm text-slate-500 mb-5">Pasang apl ini dahulu untuk membuat permintaan parkir.</p>
-    <div id="install-ios" class="hidden space-y-2 text-sm text-slate-700">
-      <p>1. Tekan ikon <strong>Kongsi</strong> (□↑) di bar bawah Safari.</p>
-      <p>2. Tatal ke bawah dan pilih <strong>"Tambah ke Skrin Utama"</strong>.</p>
-      <p>3. Tekan <strong>"Tambah"</strong> di penjuru kanan atas.</p>
-    </div>
-    <div id="install-android" class="hidden space-y-2 text-sm text-slate-700">
-      <p>1. Tekan ikon menu <strong>⋮</strong> di penjuru kanan atas Chrome.</p>
-      <p>2. Pilih <strong>"Pasang apl"</strong> atau <strong>"Tambah ke skrin utama"</strong>.</p>
-      <p>3. Sahkan pemasangan.</p>
-    </div>
-    <div id="install-generic" class="hidden space-y-2 text-sm text-slate-700">
-      <p>Buka laman web ini dalam <strong>Chrome</strong> atau <strong>Safari</strong>, kemudian tambah ke skrin utama melalui menu pelayar anda.</p>
-    </div>
-  </div>
-</div>
-
 <!-- ═══ Privacy modal ════════════════════════════════════ -->
 <div id="modal-privacy"
   class="hidden fixed inset-0 z-50 flex items-start justify-center bg-black/40 backdrop-blur-sm p-4 overflow-y-auto"
@@ -360,7 +318,7 @@
     <section class="mb-5">
       <h3 class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">2. Maklumat Yang Kami Kumpul</h3>
       <p class="text-sm text-slate-600 leading-relaxed mb-2">Semasa log masuk, kami mengesahkan identiti anda menggunakan nombor telefon, unit, dan petak parking anda. Maklumat ini tidak disimpan dalam permintaan parking.</p>
-      <p class="text-sm text-slate-600 leading-relaxed">Bagi setiap permintaan parking, hanya masa mula dan masa tamat yang diperlukan disimpan.</p>
+      <p class="text-sm text-slate-600 leading-relaxed">Bagi setiap permintaan parking, masa mula, masa tamat, dan nombor telefon anda disimpan. Nombor telefon ini digunakan untuk membolehkan jiran yang ingin membantu menghubungi anda melalui WhatsApp.</p>
     </section>
 
     <section class="mb-5">
@@ -370,7 +328,7 @@
 
     <section class="mb-5">
       <h3 class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">4. Penggunaan Data</h3>
-      <p class="text-sm text-slate-600 leading-relaxed">Data anda digunakan semata-mata untuk memadankan permintaan parking antara jiran-jiran dalam komuniti anda. Tiada maklumat peribadi seperti nama, nombor telefon, atau unit didedahkan dalam senarai awam.</p>
+      <p class="text-sm text-slate-600 leading-relaxed">Data anda digunakan semata-mata untuk memadankan permintaan parking antara jiran-jiran dalam komuniti anda. Tiada maklumat peribadi seperti nama atau unit didedahkan dalam senarai permintaan. Walau bagaimanapun, apabila seorang jiran bersetuju untuk membantu, nombor telefon anda akan dikongsi dengan mereka melalui pautan WhatsApp untuk tujuan koordinasi.</p>
     </section>
 
     <section class="mb-5">
@@ -380,7 +338,7 @@
 
     <section class="mb-5">
       <h3 class="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">6. Hak Anda</h3>
-      <p class="text-sm text-slate-600 leading-relaxed">Anda boleh membatalkan permintaan anda pada bila-bila masa melalui apl ini. Untuk pemadaman akaun sepenuhnya, hubungi pentadbir komuniti anda.</p>
+      <p class="text-sm text-slate-600 leading-relaxed">Anda boleh membatalkan permintaan anda pada bila-bila masa melalui apl ini. Untuk memadam akaun anda sepenuhnya, pergi ke <strong class="font-semibold text-slate-700">Profil Saya</strong> dalam apl. Pemadaman akan membatalkan permintaan terbuka dan memadamkan semua data anda secara kekal.</p>
     </section>
 
     <section class="mb-6">
@@ -529,62 +487,19 @@ import { createClient } from '@supabase/supabase-js'
 import { createAuth } from './src/auth.js'
 import { createDb }   from './src/db.js'
 import { esc, sanitize, fmtSlot, fmtMalay, validateRequestForm, buildWhatsAppFulfilLink, computeToDefaults, normalisePhone, normaliseUnit, normaliseBay } from './src/lib.js'
-import { registerPush, shouldShowPushButton, isStandalone, isIOS, isAndroidChrome, isIOSBelow16_4 } from './src/pwa.js'
-
 /* ── Supabase client ──────────────────────────────────── */
-// TODO: replace with your project's URL and anon key
 const SUPABASE_URL  = 'https://hmfpdpdovzkdhbwolgxy.supabase.co'
 const SUPABASE_ANON = 'sb_publishable_dR6EUghM9WYXQ2B41mYYZQ_ussCN8tc'
-
-// TODO: replace with your VAPID public key (generate with: npx web-push generate-vapid-keys)
-const VAPID_PUBLIC_KEY = 'BBDu9zgYklAeIuMTnoP1-4WJDvPhdVgozQSB2PIHUrdGJYOUesfyR1015PWElMibexLbPJLjv4oEUI77YbU_-f0'
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON)
 const auth     = createAuth(supabase)
 const db       = createDb(supabase)
 
 let currentSession   = null
-let swRegistration   = null
 let realtimeChannel  = null
 let pollInterval     = null
 let myPhone          = null
 let myBay            = null
-
-/* ── Service worker ───────────────────────────────────── */
-async function registerSW() {
-  if (!('serviceWorker' in navigator)) return
-  swRegistration = await navigator.serviceWorker.register('/sw.js')
-}
-
-/* ── Push notifications ───────────────────────────────── */
-async function setupNotifications() {
-  if (!shouldShowPushButton()) return
-  if (Notification.permission === 'granted') return
-
-  const banner  = document.getElementById('notif-banner')
-  const notifBtn = document.getElementById('notif-btn')
-  banner.classList.remove('hidden')
-
-  notifBtn.addEventListener('click', async () => {
-    if (!swRegistration) return
-    notifBtn.disabled = true
-    notifBtn.textContent = 'Menunggu...'
-    const result = await registerPush({
-      requestPermission: () => Notification.requestPermission(),
-      registration: swRegistration,
-      vapidKey: VAPID_PUBLIC_KEY,
-      db,
-      userId: currentSession.user.id,
-    })
-    if (result.granted) {
-      banner.classList.add('hidden')
-      updateButtonGate()
-    } else {
-      notifBtn.disabled = false
-      notifBtn.textContent = 'Aktif'
-    }
-  })
-}
 
 function notifyEvent(requestId, event) {
   if (!currentSession) return
@@ -619,8 +534,6 @@ function showApp() {
   loginView.classList.add('hidden')
   appView.classList.remove('hidden')
   headerAuthBtns.classList.remove('hidden')
-  setupNotifications()
-  updateButtonGate()
 
   realtimeChannel = supabase
     .channel('requests-live')
@@ -728,60 +641,11 @@ document.querySelectorAll('input[type="date"], input[type="time"]').forEach(inpu
   })
 })
 
-/* ── Button gate ──────────────────────────────────────── */
-function getButtonGateState() {
-  return 'open'
-}
-
-function updateButtonGate() {
-  const state   = getButtonGateState()
-  const btn     = document.getElementById('toggle-form-btn')
-  const hint    = document.getElementById('toggle-form-hint')
-  const gated   = state !== 'open'
-  btn.classList.toggle('opacity-60', gated)
-  btn.classList.toggle('cursor-not-allowed', gated)
-  btn.classList.toggle('hover:bg-teal-700', !gated)
-  btn.classList.toggle('active:bg-teal-800', !gated)
-  if (gated) {
-    hint.textContent = state === 'install'
-      ? 'Sila tambah apl ini ke skrin utama dahulu'
-      : 'Sila aktifkan notifikasi dahulu'
-    hint.classList.remove('hidden')
-  } else {
-    hint.classList.add('hidden')
-  }
-}
-
-function openInstallModal() {
-  const ios     = isIOS()
-  const android = isAndroidChrome()
-  document.getElementById('install-ios').classList.toggle('hidden', !ios)
-  document.getElementById('install-android').classList.toggle('hidden', !(!ios && android))
-  document.getElementById('install-generic').classList.toggle('hidden', ios || (!ios && android))
-  document.getElementById('modal-install').classList.remove('hidden')
-}
-
-function pulseNotifBanner() {
-  const banner = document.getElementById('notif-banner')
-  banner.classList.remove('hidden')
-  banner.classList.remove('pulse-ring')
-  void banner.offsetWidth
-  banner.classList.add('pulse-ring')
-  banner.addEventListener('animationend', () => banner.classList.remove('pulse-ring'), { once: true })
-}
-
-document.getElementById('btn-install-close').addEventListener('click', () => {
-  document.getElementById('modal-install').classList.add('hidden')
-})
-
 /* ── Form toggle ──────────────────────────────────────── */
 const toggleBtn = document.getElementById('toggle-form-btn')
 const formCard  = document.getElementById('form-card')
 
 toggleBtn.addEventListener('click', () => {
-  const gateState = getButtonGateState()
-  if (gateState === 'notif') { pulseNotifBanner(); return }
-
   formCard.classList.toggle('hidden')
   const isOpen = !formCard.classList.contains('hidden')
   toggleBtn.setAttribute('aria-expanded', String(isOpen))
@@ -1286,7 +1150,6 @@ document.addEventListener('keydown', e => {
 
 /* ── Init ─────────────────────────────────────────────── */
 async function init() {
-  await registerSW()
   currentSession = await auth.getSession()
   if (currentSession) {
     myPhone = localStorage.getItem('pkjiran_phone') || ''

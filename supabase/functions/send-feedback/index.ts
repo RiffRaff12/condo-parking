@@ -1,9 +1,10 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { SMTPClient } from 'https://deno.land/x/denomailer/mod.ts'
 
-const SUPABASE_URL     = Deno.env.get('SUPABASE_URL')!
-const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const RESEND_API_KEY   = Deno.env.get('RESEND_API_KEY')!
-const FEEDBACK_EMAIL   = Deno.env.get('FEEDBACK_EMAIL')!
+const SUPABASE_URL      = Deno.env.get('SUPABASE_URL')!
+const SERVICE_ROLE_KEY  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const GMAIL_APP_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD')!
+const MY_EMAIL          = 'zhariff.hazali@gmail.com'
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -38,26 +39,27 @@ Deno.serve(async (req) => {
 
   const unit = user.user_metadata?.unit ?? 'tidak diketahui'
 
-  const emailBody = `Unit: ${unit}\n\n${message}`
-
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${RESEND_API_KEY}`,
-      'Content-Type': 'application/json',
+  const client = new SMTPClient({
+    connection: {
+      hostname: 'smtp.gmail.com',
+      port: 465,
+      tls: true,
+      auth: {
+        username: MY_EMAIL,
+        password: GMAIL_APP_PASSWORD,
+      },
     },
-    body: JSON.stringify({
-      from: 'ParkitJiran <noreply@parkitjiran.app>',
-      to: FEEDBACK_EMAIL,
-      subject: '[ParkitJiran] Maklum Balas',
-      text: emailBody,
-    }),
   })
 
-  if (!res.ok) {
-    const err = await res.text()
-    console.error('Resend error:', err)
-    return json({ error: 'Failed to send email' }, 500)
+  try {
+    await client.send({
+      from: `ParkitJiran <${MY_EMAIL}>`,
+      to: MY_EMAIL,
+      subject: '[ParkitJiran] Maklum Balas',
+      content: `Unit: ${unit}\n\n${message}`,
+    })
+  } finally {
+    await client.close()
   }
 
   return json({ sent: true })

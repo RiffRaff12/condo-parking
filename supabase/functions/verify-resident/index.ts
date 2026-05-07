@@ -50,16 +50,18 @@ Deno.serve(async (req) => {
   // Create auth user if they don't exist yet; ignore error if they already do.
   // Phone is stored only in user_metadata — not as a Supabase auth phone — to
   // avoid E.164 validation rejecting local-format numbers (e.g. 601xxx vs +601xxx).
-  await admin.auth.admin.createUser({
+  const { data: newUserData } = await admin.auth.admin.createUser({
     email: internalEmail,
     email_confirm: true,
     user_metadata: userMeta,
   })
 
-  // Sync latest resident data (name, email, bay) to metadata on every login
-  const { data: existingUser } = await admin.auth.admin.getUserByEmail(internalEmail)
-  if (existingUser?.id) {
-    await admin.auth.admin.updateUserById(existingUser.id, { user_metadata: userMeta })
+  // Sync latest resident data to metadata on every login
+  if (!newUserData?.user?.id) {
+    // User already existed — find their ID and update metadata
+    const { data: listData } = await admin.auth.admin.listUsers({ perPage: 1000 })
+    const uid = listData?.users?.find((u: { email?: string }) => u.email === internalEmail)?.id
+    if (uid) await admin.auth.admin.updateUserById(uid, { user_metadata: userMeta })
   }
 
   const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({

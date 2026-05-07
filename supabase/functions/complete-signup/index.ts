@@ -22,9 +22,6 @@ function normalisePhone(input: string): string {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS })
 
-  const authHeader = req.headers.get('Authorization')
-  if (!authHeader) return json({ error: 'Unauthorized' }, 401)
-
   let body: { name?: string; email?: string; phone?: string; unit_number?: string; bay_number?: string }
   try { body = await req.json() } catch { return json({ error: 'Invalid JSON' }, 400) }
 
@@ -32,25 +29,28 @@ Deno.serve(async (req) => {
   if (!name || !email || !body.phone || !unit_number || !bay_number)
     return json({ error: 'All fields are required' }, 400)
 
-  const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { persistSession: false } })
-
-  // Verify the OTP session — user must be authenticated via Supabase email OTP
-  const { data: { user }, error: authErr } = await admin.auth.getUser(authHeader.replace('Bearer ', ''))
-  if (authErr || !user) return json({ error: 'Unauthorized' }, 401)
-
-  // Ensure the session email matches what was submitted (prevent token reuse)
-  if (user.email !== email) return json({ error: 'Email mismatch' }, 403)
-
   let phone: string
   try { phone = '6' + normalisePhone(body.phone) }
-  catch { return json({ code: 'INVALID_PHONE', message: 'Invalid phone' }, 400) }
+  catch { return json({ code: 'INVALID_PHONE', message: 'Invalid Malaysian mobile number' }, 400) }
 
   const unit = unit_number.trim().toUpperCase()
   const bay  = bay_number.trim().toUpperCase()
 
+  const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { persistSession: false } })
+
+  const { data: existing } = await admin
+    .from('residents_directory')
+    .select('id')
+    .eq('phone', phone)
+    .eq('unit_number', unit)
+    .eq('bay_number', bay)
+    .maybeSingle()
+
+  if (existing) return json({ code: 'DUPLICATE', message: 'Already registered' }, 409)
+
   const { error: insertErr } = await admin.from('residents_directory').insert({
-    name: name.trim().slice(0, 100),
-    email,
+    name:        name.trim().slice(0, 100),
+    email:       email.trim().slice(0, 200),
     phone,
     unit_number: unit,
     bay_number:  bay,
@@ -61,9 +61,6 @@ Deno.serve(async (req) => {
     console.error('Insert error:', insertErr)
     return json({ error: 'Failed to create account' }, 500)
   }
-
-  // Delete the temporary email-based auth user — login uses phone+unit+bay via verify-resident
-  await admin.auth.admin.deleteUser(user.id)
 
   return json({ created: true })
 })
