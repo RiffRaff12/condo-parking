@@ -22,14 +22,15 @@ Deno.serve(async (req) => {
   const authHeader = req.headers.get('Authorization')
   if (!authHeader) return json({ error: 'Unauthorized' }, 401)
 
-  let body: { message?: string }
+  let body: { message?: string; from_email?: string }
   try {
     body = await req.json()
   } catch {
     return json({ error: 'Invalid JSON' }, 400)
   }
 
-  const message = body.message?.trim()
+  const message   = body.message?.trim()
+  const fromEmail = body.from_email?.trim()
   if (!message) return json({ error: 'Message is required' }, 400)
 
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { persistSession: false } })
@@ -51,12 +52,15 @@ Deno.serve(async (req) => {
     },
   })
 
+  const replyTo = fromEmail ? `${fromEmail}` : undefined
+
   try {
     await client.send({
-      from: `ParkitJiran <${MY_EMAIL}>`,
-      to: MY_EMAIL,
+      from:    `ParkitJiran <${MY_EMAIL}>`,
+      to:      MY_EMAIL,
+      replyTo,
       subject: '[ParkitJiran] Maklum Balas',
-      content: `Unit: ${unit}\n\n${message}`,
+      content: `Unit: ${unit}${fromEmail ? `\nDaripada: ${fromEmail}` : ''}\n\n${message}`,
     })
   } finally {
     await client.close()
