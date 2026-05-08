@@ -836,7 +836,7 @@ async function renderList() {
 
   listEl.querySelectorAll('.btn-confirm').forEach(btn => {
     btn.addEventListener('click', () => {
-      if (btn.dataset.waUrl) window.location.href = btn.dataset.waUrl
+      if (btn.dataset.waUrl) window.open(btn.dataset.waUrl, '_blank')
       confirmFulfil(btn.dataset.id)
     })
   })
@@ -1160,8 +1160,9 @@ document.addEventListener('keydown', e => {
 async function init() {
   currentSession = await auth.getSession()
   if (currentSession) {
-    myPhone = localStorage.getItem('pkjiran_phone') || ''
-    myBay = localStorage.getItem('pkjiran_bay') || ''
+    const meta = currentSession.user?.user_metadata || {}
+    myPhone = localStorage.getItem('pkjiran_phone') || meta.phone || ''
+    myBay = localStorage.getItem('pkjiran_bay') || meta.bay || ''
     showApp()
     await renderList()
   } else showLogin()
