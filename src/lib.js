@@ -26,7 +26,17 @@ export function fmtMalay(iso) {
   return `${DAYS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${h}:00 ${period}`;
 }
 
-export const DAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+export const DAYS_SHORT  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+export const DAYS_EN     = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+export const MONTHS_EN   = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+export function fmtEN(iso) {
+  const d = new Date(iso);
+  const h24 = d.getHours();
+  const h = (h24 === 0 || h24 === 12) ? 12 : h24 % 12;
+  const ampm = h24 < 12 ? 'AM' : 'PM';
+  return `${DAYS_EN[d.getDay()]}, ${d.getDate()} ${MONTHS_EN[d.getMonth()]} ${d.getFullYear()}, ${h}:00 ${ampm}`;
+}
 
 export function fmtSlot(iso) {
   const d = new Date(iso);
@@ -40,6 +50,18 @@ export function fmtSlot(iso) {
     dow:  DAYS_SHORT[d.getDay()],
     date: `${d.getDate()} ${MONTHS[d.getMonth()]}`,
     time: `${h}:00${period}`,
+  };
+}
+
+export function fmtSlotEN(iso) {
+  const d = new Date(iso);
+  const h24 = d.getHours();
+  const h = (h24 === 0 || h24 === 12) ? 12 : h24 % 12;
+  const ampm = h24 < 12 ? 'AM' : 'PM';
+  return {
+    dow:  DAYS_SHORT[d.getDay()],
+    date: `${d.getDate()} ${MONTHS_EN[d.getMonth()]}`,
+    time: `${h}:00 ${ampm}`,
   };
 }
 
@@ -58,14 +80,14 @@ export function computeToDefaults(fromDate, fromTime) {
 /* ── Validation helpers ───────────────────────────────── */
 export function validateRequestForm({ fromDate, fromTime, toDate, toTime }) {
   if (!fromDate || !fromTime || !toDate || !toTime)
-    return { ok: false, error: 'Sila isi semua ruangan sebelum menghantar.' };
+    return { ok: false, error: 'Sila isi semua ruangan sebelum menghantar.', errorKey: 'val_fill_all' };
   const fromISO = `${fromDate}T${fromTime}:00`;
   const toISO   = `${toDate}T${toTime}:00`;
   if (new Date(toISO) <= new Date(fromISO))
-    return { ok: false, error: 'Masa tamat mesti selepas masa mula.' };
+    return { ok: false, error: 'Masa tamat mesti selepas masa mula.', errorKey: 'val_end_after_start' };
   const limitMs = 3 * 24 * 60 * 60 * 1000;
   if (new Date(fromISO) - Date.now() > limitMs)
-    return { ok: false, error: 'Permintaan hanya boleh dibuat 3 hari ke hadapan.' };
+    return { ok: false, error: 'Permintaan hanya boleh dibuat 3 hari ke hadapan.', errorKey: 'val_max_3_days' };
   return { ok: true, fromISO, toISO };
 }
 
@@ -73,9 +95,12 @@ export function buildWhatsAppLink(phone) {
   return `https://wa.me/${waPhone(phone)}`
 }
 
-export function buildWhatsAppFulfilLink(requesterPhone, fulfillerBay, startIso, endIso) {
+export function buildWhatsAppFulfilLink(requesterPhone, fulfillerBay, startIso, endIso, lang = 'ms') {
   if (!requesterPhone) return null
-  const msg = `Salam jiran! 👋\n\nSaya boleh tawarkan petak parking saya:\n🅿️ Petak: ${fulfillerBay}\n📅 Dari: ${fmtMalay(startIso)}\n⏰ Hingga: ${fmtMalay(endIso)}\n\nBoleh saya bantu?`
+  const fmt = lang === 'en' ? fmtEN : fmtMalay
+  const msg = lang === 'en'
+    ? `Hi neighbour! 👋\n\nI can offer my parking bay:\n🅿️ Bay: ${fulfillerBay}\n📅 From: ${fmt(startIso)}\n⏰ Until: ${fmt(endIso)}\n\nCan I help?`
+    : `Salam jiran! 👋\n\nSaya boleh tawarkan petak parking saya:\n🅿️ Petak: ${fulfillerBay}\n📅 Dari: ${fmt(startIso)}\n⏰ Hingga: ${fmt(endIso)}\n\nBoleh saya bantu?`
   return `https://wa.me/${waPhone(requesterPhone)}?text=${encodeURIComponent(msg)}`
 }
 
@@ -90,9 +115,12 @@ export function buildShareLink(requestId) {
   return `https://parkitjiran.netlify.app/?r=${requestId}`
 }
 
-export function buildShareMessage({ id, requester_name, start_datetime, end_datetime }) {
+export function buildShareMessage({ id, requester_name, start_datetime, end_datetime }, lang = 'ms') {
   const link = buildShareLink(id)
-  return `Hai semua! 👋 Saya ${requester_name}, perlukan tempat parking:\n📅 Dari: ${fmtMalay(start_datetime)}\n⏰ Hingga: ${fmtMalay(end_datetime)}\n\nAda yang boleh bantu? 🙏\nKlik untuk bantu: ${link}`
+  const fmt = lang === 'en' ? fmtEN : fmtMalay
+  return lang === 'en'
+    ? `Hi everyone! 👋 I'm ${requester_name}, looking for parking:\n📅 From: ${fmt(start_datetime)}\n⏰ Until: ${fmt(end_datetime)}\n\nAnyone can help? 🙏\nClick to help: ${link}`
+    : `Hai semua! 👋 Saya ${requester_name}, perlukan tempat parking:\n📅 Dari: ${fmt(start_datetime)}\n⏰ Hingga: ${fmt(end_datetime)}\n\nAda yang boleh bantu? 🙏\nKlik untuk bantu: ${link}`
 }
 
 export function normalisePhone(input) {
