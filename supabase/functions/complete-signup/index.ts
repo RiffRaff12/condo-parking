@@ -38,15 +38,15 @@ Deno.serve(async (req) => {
 
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { persistSession: false } })
 
-  const { data: existing } = await admin
-    .from('residents_directory')
-    .select('id')
-    .eq('phone', phone)
-    .eq('unit_number', unit)
-    .eq('bay_number', bay)
-    .maybeSingle()
+  const [phoneCheck, unitCheck, bayCheck] = await Promise.all([
+    admin.from('residents_directory').select('id').eq('phone', phone).maybeSingle(),
+    admin.from('residents_directory').select('id').eq('unit_number', unit).maybeSingle(),
+    admin.from('residents_directory').select('id').eq('bay_number', bay).maybeSingle(),
+  ])
 
-  if (existing) return json({ code: 'DUPLICATE', message: 'Already registered' }, 409)
+  if (phoneCheck.data) return json({ code: 'DUPLICATE_PHONE', message: 'Phone already registered' }, 409)
+  if (unitCheck.data)  return json({ code: 'DUPLICATE_UNIT',  message: 'Unit already registered' }, 409)
+  if (bayCheck.data)   return json({ code: 'DUPLICATE_BAY',   message: 'Bay already registered' }, 409)
 
   const { error: insertErr } = await admin.from('residents_directory').insert({
     name:        name.trim().slice(0, 100),
@@ -57,7 +57,12 @@ Deno.serve(async (req) => {
   })
 
   if (insertErr) {
-    if (insertErr.code === '23505') return json({ code: 'DUPLICATE', message: 'Already registered' }, 409)
+    if (insertErr.code === '23505') {
+      if (insertErr.message.includes('phone'))        return json({ code: 'DUPLICATE_PHONE', message: 'Phone already registered' }, 409)
+      if (insertErr.message.includes('unit_number'))  return json({ code: 'DUPLICATE_UNIT',  message: 'Unit already registered' }, 409)
+      if (insertErr.message.includes('bay_number'))   return json({ code: 'DUPLICATE_BAY',   message: 'Bay already registered' }, 409)
+      return json({ code: 'DUPLICATE', message: 'Already registered' }, 409)
+    }
     console.error('Insert error:', insertErr)
     return json({ error: 'Failed to create account' }, 500)
   }

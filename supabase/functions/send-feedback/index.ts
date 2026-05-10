@@ -19,9 +19,6 @@ function json(body: unknown, status = 200) {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS })
 
-  const authHeader = req.headers.get('Authorization')
-  if (!authHeader) return json({ error: 'Unauthorized' }, 401)
-
   let body: { message?: string; from_email?: string }
   try {
     body = await req.json()
@@ -33,12 +30,13 @@ Deno.serve(async (req) => {
   const fromEmail = body.from_email?.trim()
   if (!message) return json({ error: 'Message is required' }, 400)
 
-  const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { persistSession: false } })
-
-  const { data: { user }, error: authErr } = await admin.auth.getUser(authHeader.replace('Bearer ', ''))
-  if (authErr || !user) return json({ error: 'Unauthorized' }, 401)
-
-  const unit = user.user_metadata?.unit ?? 'tidak diketahui'
+  let unit = 'tidak diketahui'
+  const authHeader = req.headers.get('Authorization')
+  if (authHeader?.startsWith('Bearer ')) {
+    const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { persistSession: false } })
+    const { data: { user } } = await admin.auth.getUser(authHeader.replace('Bearer ', ''))
+    if (user?.user_metadata?.unit) unit = user.user_metadata.unit
+  }
 
   const client = new SMTPClient({
     connection: {

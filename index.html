@@ -93,7 +93,7 @@
   </div>
 
   <!-- ── Sign-up form ───────────────────────────────────── -->
-  <div id="signup-form" class="hidden">
+  <div id="signup-form">
 
     <!-- Step 1: details -->
     <div id="signup-step-1">
@@ -184,6 +184,31 @@
       Sudah ada akaun?
       <button id="btn-show-login" class="text-teal-600 font-semibold hover:underline focus:outline-none">Log masuk</button>
     </p>
+  </div>
+
+  <!-- ── Pre-auth feedback ─────────────────────────────── -->
+  <div class="mt-6 text-center">
+    <button id="pre-auth-feedback-toggle"
+      class="text-sm text-slate-400 hover:text-teal-600 transition-colors focus:outline-none">
+      Ada masalah mendaftar atau log masuk?
+      <span class="text-teal-600 font-semibold underline">Hubungi kami</span>
+    </button>
+  </div>
+  <div id="pre-auth-feedback-panel" class="hidden mt-3 bg-white rounded-2xl border border-slate-200 p-5">
+    <p class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">Hubungi Kami</p>
+    <div class="mb-3">
+      <label for="pre-feedback-email" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">E-mel anda (untuk kami balas)</label>
+      <input type="email" id="pre-feedback-email" autocomplete="email"
+        class="block w-full min-h-[44px] px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
+    </div>
+    <textarea id="pre-feedback-msg" rows="3" placeholder="Tulis masalah anda di sini..."
+      class="block w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10 resize-none"></textarea>
+    <div id="pre-feedback-err" class="hidden mt-3 px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-semibold" role="alert"></div>
+    <div id="pre-feedback-ok" class="hidden mt-3 px-4 py-3 bg-teal-50 text-teal-800 border border-teal-200 rounded-xl text-sm font-semibold" role="status">✓ Maklum balas anda telah dihantar. Terima kasih!</div>
+    <button id="pre-feedback-btn"
+      class="mt-3 w-full min-h-[48px] py-3 bg-slate-700 hover:bg-slate-800 text-white rounded-xl text-sm font-bold cursor-pointer transition-colors">
+      Hantar
+    </button>
   </div>
 
 </div>
@@ -535,11 +560,20 @@ function showLogin() {
   showLoginForm()
 }
 
+function showSignup() {
+  loginView.classList.remove('hidden')
+  appView.classList.add('hidden')
+  headerAuthBtns.classList.add('hidden')
+  showSignupForm()
+}
+
 function showApp() {
   loginView.classList.add('hidden')
   appView.classList.remove('hidden')
   headerAuthBtns.classList.remove('hidden')
   document.getElementById('feedback-email').value = currentSession?.user?.user_metadata?.email || ''
+
+  document.getElementById('feedback-ok').classList.add('hidden')
 
   realtimeChannel = supabase
     .channel('requests-live')
@@ -692,6 +726,7 @@ submitBtn.addEventListener('click', async () => {
     await db.createRequest({
       requester_id:    currentSession.user.id,
       requester_phone: myPhone,
+      requester_name:  currentSession.user.user_metadata?.name || '',
       start_datetime:  new Date(fromISO).toISOString(),
       end_datetime:    new Date(toISO).toISOString(),
     })
@@ -741,6 +776,7 @@ function buildOpenCard(req) {
           </div>
         `)([fmtSlot(req.start_datetime), fmtSlot(req.end_datetime)])}
       </div>
+      ${req.requester_name ? `<div class="text-xs text-slate-400 mb-2.5">Oleh: <span class="font-semibold text-slate-600">${esc(req.requester_name)}</span></div>` : ''}
       ${isMine
         ? `<button class="btn-cancel w-full min-h-[40px] px-3 py-2 bg-slate-50 text-slate-500 border border-slate-200 rounded-xl text-sm font-bold cursor-pointer whitespace-nowrap transition-all hover:bg-red-50 hover:text-red-600 hover:border-red-200"
                    data-id="${esc(req.id)}">Batalkan Permintaan</button>`
@@ -931,6 +967,7 @@ document.getElementById('feedback-btn').addEventListener('click', async () => {
     if (!res.ok) throw new Error('Ralat pelayan.')
     msgEl.value = ''
     okEl.classList.remove('hidden')
+    setTimeout(() => okEl.classList.add('hidden'), 4000)
   } catch (e) {
     errEl.textContent = 'Gagal menghantar. Sila cuba lagi.'
     errEl.classList.remove('hidden')
@@ -1003,7 +1040,13 @@ document.getElementById('signup-submit-btn').addEventListener('click', async () 
     })
     const data = await res.json()
     if (!res.ok) {
-      errEl.textContent = data.code === 'DUPLICATE'
+      errEl.textContent = data.code === 'DUPLICATE_PHONE'
+        ? 'Nombor telefon ini sudah didaftarkan. Sila log masuk atau hubungi kami jika ada masalah.'
+        : data.code === 'DUPLICATE_UNIT'
+        ? 'Nombor unit ini sudah didaftarkan. Sila hubungi kami jika ini adalah kesilapan.'
+        : data.code === 'DUPLICATE_BAY'
+        ? 'Nombor petak parking ini sudah didaftarkan. Sila hubungi kami jika ini adalah kesilapan.'
+        : data.code === 'DUPLICATE'
         ? 'Anda sudah berdaftar. Sila log masuk.'
         : data.error || 'Ralat pelayan. Sila cuba lagi.'
       errEl.classList.remove('hidden')
@@ -1165,8 +1208,59 @@ async function init() {
     myBay = localStorage.getItem('pkjiran_bay') || meta.bay || ''
     showApp()
     await renderList()
-  } else showLogin()
+  } else {
+    const hasVisitedBefore = localStorage.getItem('pkjiran_phone')
+    if (hasVisitedBefore) showLogin()
+    else showSignup()
+  }
 }
+
+/* ── Pre-auth feedback ────────────────────────────────── */
+document.getElementById('pre-auth-feedback-toggle').addEventListener('click', () => {
+  document.getElementById('pre-auth-feedback-panel').classList.toggle('hidden')
+})
+
+document.getElementById('pre-feedback-btn').addEventListener('click', async () => {
+  const msgEl    = document.getElementById('pre-feedback-msg')
+  const emailEl  = document.getElementById('pre-feedback-email')
+  const errEl    = document.getElementById('pre-feedback-err')
+  const okEl     = document.getElementById('pre-feedback-ok')
+  const btn      = document.getElementById('pre-feedback-btn')
+  const message  = msgEl.value.trim()
+  const fromEmail = emailEl.value.trim()
+
+  errEl.classList.add('hidden')
+  okEl.classList.add('hidden')
+
+  if (!message) {
+    errEl.textContent = 'Sila tulis maklum balas sebelum menghantar.'
+    errEl.classList.remove('hidden')
+    return
+  }
+
+  btn.disabled = true
+  btn.textContent = 'Menghantar...'
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-feedback`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON,
+      },
+      body: JSON.stringify({ message, from_email: fromEmail }),
+    })
+    if (!res.ok) throw new Error('Ralat pelayan.')
+    msgEl.value = ''
+    okEl.classList.remove('hidden')
+    setTimeout(() => okEl.classList.add('hidden'), 4000)
+  } catch {
+    errEl.textContent = 'Gagal menghantar. Sila cuba lagi.'
+    errEl.classList.remove('hidden')
+  } finally {
+    btn.disabled = false
+    btn.textContent = 'Hantar'
+  }
+})
 
 init()
 </script>
