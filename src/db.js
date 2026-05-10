@@ -23,19 +23,6 @@ export function createDb(client) {
       return data
     },
 
-    async revokeRequest(requestId, fulfillerId) {
-      const { data, error } = await client
-        .from('requests')
-        .update({ status: 'open', fulfiller_id: null, fulfiller_bay: null })
-        .eq('id', requestId)
-        .eq('fulfiller_id', fulfillerId)
-        .select()
-        .maybeSingle()
-      if (error) throw error
-      if (!data) throw new Error('UNAUTHORIZED')
-      return data
-    },
-
     async cancelRequest(requestId, userId) {
       const { data, error } = await client
         .from('requests')
@@ -48,18 +35,6 @@ export function createDb(client) {
       return data
     },
 
-    async savePushSubscription(userId, subscriptionJson) {
-      const { data, error } = await client
-        .from('push_subscriptions')
-        .upsert(
-          { user_id: userId, endpoint: subscriptionJson.endpoint, subscription_json: subscriptionJson },
-          { onConflict: 'user_id,endpoint' }
-        )
-        .select()
-        .single()
-      if (error) throw error
-      return data
-    },
 
     async fetchOpenRequests() {
       const { data, error } = await client

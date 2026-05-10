@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0d9488">
 <title>ParkitJiran</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script type="importmap">
@@ -95,10 +97,8 @@
   <!-- ── Sign-up form ───────────────────────────────────── -->
   <div id="signup-form">
 
-    <!-- Step 1: details -->
-    <div id="signup-step-1">
-      <p class="text-[11px] font-extrabold text-teal-700 uppercase tracking-widest mb-5 text-center">Daftar akaun baharu</p>
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+    <p class="text-[11px] font-extrabold text-teal-700 uppercase tracking-widest mb-5 text-center">Daftar akaun baharu</p>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
         <div>
           <label for="s-name" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Nama Penuh</label>
           <input type="text" id="s-name" placeholder="contoh: Ahmad bin Ali" autocomplete="name"
@@ -143,33 +143,6 @@
           Daftar
         </button>
       </div>
-    </div>
-
-    <!-- Step 2: OTP -->
-    <div id="signup-step-2" class="hidden">
-      <p class="text-[11px] font-extrabold text-teal-700 uppercase tracking-widest mb-5 text-center">Semak e-mel anda</p>
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
-        <p id="signup-otp-hint" class="text-sm text-slate-600 leading-relaxed"></p>
-        <div>
-          <label for="s-otp" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Kod OTP (6 digit)</label>
-          <input type="text" id="s-otp" maxlength="6" inputmode="numeric" placeholder="contoh: 123456"
-            class="block w-full min-h-[50px] px-4 py-3 border-2 border-slate-200 rounded-xl text-base text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10 tracking-widest text-center text-xl">
-        </div>
-
-        <div id="signup-otp-error"
-          class="hidden px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-semibold leading-snug"
-          role="alert"></div>
-
-        <button id="signup-otp-btn"
-          class="block w-full min-h-[52px] py-3.5 px-4 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white rounded-xl text-base font-bold cursor-pointer transition-colors">
-          Sahkan Kod
-        </button>
-        <button id="signup-otp-back-btn"
-          class="block w-full text-center text-sm text-slate-400 hover:text-teal-600 py-2 transition-colors focus:outline-none">
-          ← Kembali semak maklumat
-        </button>
-      </div>
-    </div>
 
     <!-- Success -->
     <div id="signup-success" class="hidden">
@@ -512,10 +485,16 @@
   </div>
 </div>
 
+<!-- ═══ Toast ══════════════════════════════════════════════ -->
+<div id="toast"
+  class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 bg-emerald-600 text-white rounded-2xl text-sm font-semibold shadow-lg whitespace-nowrap"
+  role="status"></div>
+
 <script type="module">
 import { createClient } from '@supabase/supabase-js'
 import { createAuth } from './src/auth.js'
 import { createDb }   from './src/db.js'
+import { createFeed } from './src/feed.js'
 import { esc, sanitize, fmtSlot, fmtMalay, validateRequestForm, buildWhatsAppFulfilLink, computeToDefaults, normalisePhone, normaliseUnit, normaliseBay } from './src/lib.js'
 /* ── Supabase client ──────────────────────────────────── */
 const SUPABASE_URL  = 'https://hmfpdpdovzkdhbwolgxy.supabase.co'
@@ -524,6 +503,7 @@ const SUPABASE_ANON = 'sb_publishable_dR6EUghM9WYXQ2B41mYYZQ_ussCN8tc'
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON)
 const auth     = createAuth(supabase)
 const db       = createDb(supabase)
+const feed     = createFeed(db)
 
 let currentSession   = null
 let realtimeChannel  = null
@@ -531,21 +511,16 @@ let pollInterval     = null
 let myPhone          = null
 let myBay            = null
 
-function notifyEvent(requestId, event) {
-  if (!currentSession) return
-  fetch(`${SUPABASE_URL}/functions/v1/notify-push`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${currentSession.access_token}`,
-    },
-    body: JSON.stringify({ request_id: requestId, event }),
-  }).catch(() => {})
-}
 
-const notifyFulfilled           = (id) => notifyEvent(id, 'fulfilled')
-const notifyRevoked             = (id) => notifyEvent(id, 'revoked')
-const notifyRequesterCancelled  = (id) => notifyEvent(id, 'requester_cancelled')
+/* ── Toast ────────────────────────────────────────────── */
+let toastTimer = null
+function showToast(msg) {
+  const el = document.getElementById('toast')
+  el.textContent = msg
+  el.classList.remove('hidden')
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => el.classList.add('hidden'), 3000)
+}
 
 /* ── Views ────────────────────────────────────────────── */
 const loginView      = document.getElementById('login-view')
@@ -557,6 +532,8 @@ function showLogin() {
   loginView.classList.remove('hidden')
   appView.classList.add('hidden')
   headerAuthBtns.classList.add('hidden')
+  loginBtn.disabled = false
+  loginBtn.textContent = 'Log Masuk'
   showLoginForm()
 }
 
@@ -577,10 +554,18 @@ function showApp() {
 
   realtimeChannel = supabase
     .channel('requests-live')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'requests' }, () => renderList())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'requests' }, async (event) => {
+      feed.handleEvent(event)
+      const closedList = await db.fetchClosedRequests(currentSession.user.id)
+      renderClosedList(closedList)
+    })
     .subscribe()
 
-  pollInterval = setInterval(() => renderList(), 15000)
+  pollInterval = setInterval(async () => {
+    await feed.load()
+    const closedList = await db.fetchClosedRequests(currentSession.user.id)
+    renderClosedList(closedList)
+  }, 15000)
 }
 
 /* ── Login ────────────────────────────────────────────── */
@@ -797,9 +782,6 @@ function buildOpenCard(req) {
           💬 Sahkan &amp; Hubungi via WhatsApp
         </button>
       </div>
-      <div class="fulfil-success hidden bg-white rounded-xl border border-teal-200 p-5 text-center" id="fs-${esc(req.id)}">
-        <p class="fs-msg text-sm text-slate-700 leading-relaxed"></p>
-      </div>
     </div>` : ''}
   `
   return card
@@ -818,12 +800,7 @@ async function confirmFulfil(id) {
   confirmBtn.innerHTML = 'Menghantar...'
   try {
     await db.fulfillRequest(id, { fulfiller_id: currentSession.user.id, fulfiller_bay: fBay })
-    notifyFulfilled(id)
-    panel.querySelector('.fulfil-form').classList.add('hidden')
-    const successDiv = document.getElementById(`fs-${id}`)
-    successDiv.classList.remove('hidden')
-    successDiv.querySelector('.fs-msg').textContent = `Terima kasih! Anda telah menawarkan Petak ${fBay}. Pemilik permintaan akan dimaklumkan.`
-    setTimeout(() => renderList(), 3200)
+    showToast(`✓ Terima kasih! Anda telah menawarkan Petak ${fBay}.`)
   } catch (e) {
     errMsgEl.textContent = e.message === 'RACE_CONDITION'
       ? 'Permintaan ini telah dipenuhi oleh orang lain.'
@@ -835,23 +812,21 @@ async function confirmFulfil(id) {
 }
 
 /* ── Cancel request ───────────────────────────────────── */
-async function cancelRequest(id) {
+async function cancelRequest(id, btn) {
   try {
     await db.cancelRequest(id, currentSession.user.id)
-    notifyRequesterCancelled(id)
     await renderList()
-  } catch (e) {
-    alert('Ralat semasa membatalkan: ' + e.message)
+  } catch {
+    const errEl = document.createElement('p')
+    errEl.className = 'mt-2 text-xs text-red-600 font-semibold text-center'
+    errEl.textContent = 'Ralat semasa membatalkan. Sila cuba lagi.'
+    btn.insertAdjacentElement('afterend', errEl)
+    setTimeout(() => errEl.remove(), 4000)
   }
 }
 
 /* ── Render open list ─────────────────────────────────── */
-async function renderList() {
-  const [openList, closedList] = await Promise.all([
-    db.fetchOpenRequests(),
-    db.fetchClosedRequests(currentSession.user.id),
-  ])
-
+function renderOpenList(openList) {
   const listEl  = document.getElementById('request-list')
   const emptyEl = document.getElementById('empty-state')
 
@@ -878,9 +853,13 @@ async function renderList() {
   })
 
   listEl.querySelectorAll('.btn-cancel').forEach(btn => {
-    btn.addEventListener('click', () => cancelRequest(btn.dataset.id))
+    btn.addEventListener('click', () => cancelRequest(btn.dataset.id, btn))
   })
+}
 
+async function renderList() {
+  await feed.load()
+  const closedList = await db.fetchClosedRequests(currentSession.user.id)
   renderClosedList(closedList)
 }
 
@@ -985,8 +964,6 @@ function showLoginForm() {
 function showSignupForm() {
   document.getElementById('login-form').classList.add('hidden')
   document.getElementById('signup-form').classList.remove('hidden')
-  document.getElementById('signup-step-1').classList.remove('hidden')
-  document.getElementById('signup-step-2').classList.add('hidden')
   document.getElementById('signup-success').classList.add('hidden')
 }
 document.getElementById('btn-show-signup').addEventListener('click', showSignupForm)
@@ -1198,6 +1175,8 @@ privacyModal.addEventListener('click', e => { if (e.target === privacyModal) clo
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { closePrivacy(); closeTerms(); closeProfile() }
 })
+
+feed.subscribe(renderOpenList)
 
 /* ── Init ─────────────────────────────────────────────── */
 async function init() {

@@ -103,45 +103,6 @@ describe('cancelRequest', () => {
   })
 })
 
-describe('revokeRequest', () => {
-  test('returns request reverted to open with fulfiller fields cleared', async () => {
-    const reverted = { id: '1', status: 'open', fulfiller_id: null, fulfiller_bay: null }
-    const client = mockClient()
-    client._builder.maybeSingle.mockResolvedValue({ data: reverted, error: null })
-    const db = createDb(client)
-
-    const result = await db.revokeRequest('1', 'user-99')
-
-    expect(result).toEqual(reverted)
-    expect(client._builder.update).toHaveBeenCalledWith({ status: 'open', fulfiller_id: null, fulfiller_bay: null })
-    expect(client._builder.eq).toHaveBeenCalledWith('fulfiller_id', 'user-99')
-  })
-
-  test('throws UNAUTHORIZED when fulfiller does not own the match', async () => {
-    const client = mockClient()
-    client._builder.maybeSingle.mockResolvedValue({ data: null, error: null })
-    const db = createDb(client)
-
-    await expect(db.revokeRequest('1', 'user-stranger'))
-      .rejects.toThrow('UNAUTHORIZED')
-  })
-})
-
-describe('savePushSubscription', () => {
-  test('upserts on (user_id, endpoint) so multiple devices can register independently', async () => {
-    const sub = { endpoint: 'https://push.example.com/abc', keys: { p256dh: 'key', auth: 'auth' } }
-    const client = mockClient()
-    client._builder.single.mockResolvedValue({ data: { user_id: 'user-1', subscription_json: sub }, error: null })
-    const db = createDb(client)
-
-    await db.savePushSubscription('user-1', sub)
-
-    expect(client._builder.upsert).toHaveBeenCalledWith(
-      { user_id: 'user-1', endpoint: 'https://push.example.com/abc', subscription_json: sub },
-      { onConflict: 'user_id,endpoint' }
-    )
-  })
-})
 
 describe('fetchOpenRequests', () => {
   test('returns empty array when no open requests exist', async () => {

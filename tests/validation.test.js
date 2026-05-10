@@ -1,4 +1,4 @@
-import { validateRequestForm, validateFulfilForm } from '../src/lib.js'
+import { validateRequestForm } from '../src/lib.js'
 
 function daysFromNow(n) {
   const d = new Date()
@@ -63,25 +63,3 @@ describe('validateRequestForm', () => {
   })
 })
 
-describe('validateFulfilForm', () => {
-  const VALID = { fName: 'Siti', fUnit: '2-1-15', fPhone: '0112345678', fBay: 'B1-42' }
-
-  test('returns ok:true for valid input', () => {
-    expect(validateFulfilForm(VALID).ok).toBe(true)
-  })
-  test('errors when fName is missing', () => {
-    expect(validateFulfilForm({ ...VALID, fName: '' }).ok).toBe(false)
-  })
-  test('errors when fUnit is missing', () => {
-    expect(validateFulfilForm({ ...VALID, fUnit: '' }).ok).toBe(false)
-  })
-  test('errors when fPhone is missing', () => {
-    expect(validateFulfilForm({ ...VALID, fPhone: '' }).ok).toBe(false)
-  })
-  test('errors when fBay is missing', () => {
-    expect(validateFulfilForm({ ...VALID, fBay: '' }).ok).toBe(false)
-  })
-  test('error message is correct Malay text', () => {
-    expect(validateFulfilForm({ ...VALID, fBay: '' }).error).toBe('Sila isi semua ruangan.')
-  })
-})

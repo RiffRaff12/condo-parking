@@ -1,5 +1,4 @@
 import { createAuth } from '../src/auth.js'
-import { validateOnboardingForm } from '../src/lib.js'
 
 function mockClient(overrides = {}) {
   return {
@@ -15,24 +14,6 @@ function mockClient(overrides = {}) {
     },
   }
 }
-
-describe('validateOnboardingForm', () => {
-  test('returns ok:false when phone is missing', () => {
-    expect(validateOnboardingForm({ phone: '', unit: 'A-01', bay: 'P1-01' }).ok).toBe(false)
-  })
-
-  test('returns ok:false when unit is missing', () => {
-    expect(validateOnboardingForm({ phone: '60123456789', unit: '', bay: 'P1-01' }).ok).toBe(false)
-  })
-
-  test('returns ok:false when bay is missing', () => {
-    expect(validateOnboardingForm({ phone: '60123456789', unit: 'A-01', bay: '' }).ok).toBe(false)
-  })
-
-  test('returns ok:true when all fields are present', () => {
-    expect(validateOnboardingForm({ phone: '60123456789', unit: 'A-01', bay: 'P1-01' }).ok).toBe(true)
-  })
-})
 
 describe('verifyAndSignIn', () => {
   test('throws Malay error when Edge Function returns no-match', async () => {
