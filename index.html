@@ -1035,7 +1035,7 @@ document.getElementById('signup-submit-btn').addEventListener('click', async () 
   try {
     const res = await fetch(`${SUPABASE_URL}/functions/v1/complete-signup`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON}` },
       body: JSON.stringify({ name, email, phone, unit_number: unit, bay_number: bay }),
     })
     const data = await res.json()
@@ -1245,7 +1245,7 @@ document.getElementById('pre-feedback-btn').addEventListener('click', async () =
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON,
+        'Authorization': `Bearer ${SUPABASE_ANON}`,
       },
       body: JSON.stringify({ message, from_email: fromEmail }),
     })
