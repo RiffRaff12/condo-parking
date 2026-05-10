@@ -495,7 +495,7 @@ import { createClient } from '@supabase/supabase-js'
 import { createAuth } from './src/auth.js'
 import { createDb }   from './src/db.js'
 import { createFeed } from './src/feed.js'
-import { esc, sanitize, fmtSlot, fmtMalay, validateRequestForm, buildWhatsAppFulfilLink, computeToDefaults, normalisePhone, normaliseUnit, normaliseBay } from './src/lib.js'
+import { esc, sanitize, fmtSlot, fmtMalay, validateRequestForm, buildWhatsAppFulfilLink, computeToDefaults, normalisePhone, normaliseUnit, normaliseBay, buildShareLink, buildShareMessage, resolveDeepLink } from './src/lib.js'
 /* ── Supabase client ──────────────────────────────────── */
 const SUPABASE_URL  = 'https://hmfpdpdovzkdhbwolgxy.supabase.co'
 const SUPABASE_ANON = 'sb_publishable_dR6EUghM9WYXQ2B41mYYZQ_ussCN8tc'
@@ -520,6 +520,24 @@ function showToast(msg) {
   el.classList.remove('hidden')
   clearTimeout(toastTimer)
   toastTimer = setTimeout(() => el.classList.add('hidden'), 3000)
+}
+
+let deepLinkHandled = false
+function handleDeepLinkOnce(openList) {
+  if (deepLinkHandled) return
+  const result = resolveDeepLink(window.location.search, openList.map(r => r.id))
+  if (result.action === 'none') return
+  deepLinkHandled = true
+  history.replaceState(null, '', window.location.pathname)
+  if (result.action === 'toast') {
+    showToast('Permintaan ini telah selesai.')
+    return
+  }
+  const card = document.querySelector(`.req-card[data-id="${result.id}"]`)
+  if (!card) return
+  card.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  card.classList.add('ring-2', 'ring-teal-400', 'ring-offset-2')
+  setTimeout(() => card.classList.remove('ring-2', 'ring-teal-400', 'ring-offset-2'), 2500)
 }
 
 /* ── Views ────────────────────────────────────────────── */
@@ -708,12 +726,20 @@ submitBtn.addEventListener('click', async () => {
   submitBtn.disabled = true
   submitBtn.textContent = 'Menghantar...'
   try {
-    await db.createRequest({
+    const newReq = await db.createRequest({
       requester_id:    currentSession.user.id,
       requester_phone: myPhone,
       requester_name:  currentSession.user.user_metadata?.name || '',
       start_datetime:  new Date(fromISO).toISOString(),
       end_datetime:    new Date(toISO).toISOString(),
+    })
+    sucEl.innerHTML = `
+      <div>✓ Permintaan anda telah dihantar!</div>
+      <button class="btn-share-new mt-2 w-full min-h-[40px] px-3 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold cursor-pointer transition-colors">
+        📲 Kongsikan ke Kumpulan WhatsApp
+      </button>`
+    sucEl.querySelector('.btn-share-new').addEventListener('click', () => {
+      window.open(`https://wa.me/?text=${encodeURIComponent(buildShareMessage(newReq))}`, '_blank')
     })
     sucEl.classList.remove('hidden')
     setTimeout(() => {
@@ -721,10 +747,11 @@ submitBtn.addEventListener('click', async () => {
       toggleBtn.setAttribute('aria-expanded', 'false')
       toggleBtn.querySelector('.icon').style.transform = ''
       sucEl.classList.add('hidden')
+      sucEl.innerHTML = '✓ Permintaan anda telah dihantar!'
       ;['f-from-date','f-from-time','f-to-date','f-to-time'].forEach(id => {
         document.getElementById(id).value = ''
       })
-    }, 1800)
+    }, 5000)
     await renderList()
   } catch (e) {
     showFormError('Ralat: ' + e.message)
@@ -764,7 +791,9 @@ function buildOpenCard(req) {
       ${req.requester_name ? `<div class="text-xs text-slate-400 mb-2.5">Oleh: <span class="font-semibold text-slate-600">${esc(req.requester_name)}</span></div>` : ''}
       ${isMine
         ? `<button class="btn-cancel w-full min-h-[40px] px-3 py-2 bg-slate-50 text-slate-500 border border-slate-200 rounded-xl text-sm font-bold cursor-pointer whitespace-nowrap transition-all hover:bg-red-50 hover:text-red-600 hover:border-red-200"
-                   data-id="${esc(req.id)}">Batalkan Permintaan</button>`
+                   data-id="${esc(req.id)}">Batalkan Permintaan</button>
+           <button class="btn-share mt-2 w-full min-h-[40px] px-3 py-2 bg-teal-50 text-teal-700 border border-teal-200 rounded-xl text-sm font-bold cursor-pointer whitespace-nowrap transition-all hover:bg-teal-100"
+                   data-share-msg="${esc(encodeURIComponent(buildShareMessage(req)))}">📲 Kongsikan ke Kumpulan WhatsApp</button>`
         : `<button class="btn-help w-full min-h-[40px] px-3 py-2 bg-teal-50 text-teal-700 border border-teal-200 rounded-xl text-sm font-bold cursor-pointer whitespace-nowrap transition-all hover:bg-teal-100"
                    data-id="${esc(req.id)}">🙋 Saya Boleh Bantu</button>`
       }
@@ -855,6 +884,14 @@ function renderOpenList(openList) {
   listEl.querySelectorAll('.btn-cancel').forEach(btn => {
     btn.addEventListener('click', () => cancelRequest(btn.dataset.id, btn))
   })
+
+  listEl.querySelectorAll('.btn-share').forEach(btn => {
+    btn.addEventListener('click', () => {
+      window.open(`https://wa.me/?text=${btn.dataset.shareMsg}`, '_blank')
+    })
+  })
+
+  handleDeepLinkOnce(openList)
 }
 
 async function renderList() {

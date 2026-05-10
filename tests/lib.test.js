@@ -1,4 +1,4 @@
-import { esc, waPhone, fmtMalay, fmtSlot, buildWhatsAppLink, buildWhatsAppFulfilLink, normalisePhone, normaliseUnit, normaliseBay } from '../src/lib.js'
+import { esc, waPhone, fmtMalay, fmtSlot, buildWhatsAppLink, buildWhatsAppFulfilLink, normalisePhone, normaliseUnit, normaliseBay, buildShareLink, buildShareMessage } from '../src/lib.js'
 
 describe('esc', () => {
   test('escapes < and >', () => {
@@ -204,5 +204,52 @@ describe('normaliseBay', () => {
   })
   test('returns empty string for empty input', () => {
     expect(normaliseBay('')).toBe('')
+  })
+})
+
+describe('buildShareLink', () => {
+  test('returns the deep link URL with the request ID', () => {
+    expect(buildShareLink('abc-123')).toBe('https://parkitjiran.netlify.app/?r=abc-123')
+  })
+})
+
+const SHARE_REQUEST = {
+  id: 'req-uuid-001',
+  requester_name: 'Ali Hassan',
+  start_datetime: '2026-05-10T14:00:00',
+  end_datetime:   '2026-05-10T18:00:00',
+}
+
+describe('buildShareMessage', () => {
+  test('contains the requester name', () => {
+    expect(buildShareMessage(SHARE_REQUEST)).toContain('Ali Hassan')
+  })
+
+  test('contains the formatted start time', () => {
+    expect(buildShareMessage(SHARE_REQUEST)).toContain(fmtMalay(SHARE_REQUEST.start_datetime))
+  })
+
+  test('contains the formatted end time', () => {
+    expect(buildShareMessage(SHARE_REQUEST)).toContain(fmtMalay(SHARE_REQUEST.end_datetime))
+  })
+
+  test('contains the deep link URL', () => {
+    expect(buildShareMessage(SHARE_REQUEST)).toContain('https://parkitjiran.netlify.app/?r=req-uuid-001')
+  })
+
+  test('does not contain any phone number even if request has one', () => {
+    const msg = buildShareMessage({ ...SHARE_REQUEST, requester_phone: '0123456789' })
+    expect(msg).not.toContain('0123456789')
+    expect(msg).not.toContain('60123456789')
+  })
+
+  test('edge: midnight start time formatted correctly', () => {
+    const msg = buildShareMessage({ ...SHARE_REQUEST, start_datetime: '2026-05-10T00:00:00' })
+    expect(msg).toContain('tgh. malam')
+  })
+
+  test('edge: noon end time formatted correctly', () => {
+    const msg = buildShareMessage({ ...SHARE_REQUEST, end_datetime: '2026-05-10T12:00:00' })
+    expect(msg).toContain('tgh. hari')
   })
 })

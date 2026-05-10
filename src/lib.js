@@ -79,6 +79,22 @@ export function buildWhatsAppFulfilLink(requesterPhone, fulfillerBay, startIso, 
   return `https://wa.me/${waPhone(requesterPhone)}?text=${encodeURIComponent(msg)}`
 }
 
+export function resolveDeepLink(search, openRequestIds) {
+  const id = new URLSearchParams(search).get('r')
+  if (!id) return { action: 'none' }
+  if (openRequestIds.includes(id)) return { action: 'highlight', id }
+  return { action: 'toast' }
+}
+
+export function buildShareLink(requestId) {
+  return `https://parkitjiran.netlify.app/?r=${requestId}`
+}
+
+export function buildShareMessage({ id, requester_name, start_datetime, end_datetime }) {
+  const link = buildShareLink(id)
+  return `Hai semua! 👋 Saya ${requester_name}, perlukan tempat parking:\n📅 Dari: ${fmtMalay(start_datetime)}\n⏰ Hingga: ${fmtMalay(end_datetime)}\n\nAda yang boleh bantu? 🙏\nKlik untuk bantu: ${link}`
+}
+
 export function normalisePhone(input) {
   const digits = String(input).replace(/\D/g, '').replace(/^60/, '0')
   if (!/^01\d{8,9}$/.test(digits)) throw { code: 'INVALID_PHONE' }
