@@ -19,7 +19,7 @@ function json(body: unknown, status = 200) {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS })
 
-  let body: { message?: string; from_email?: string }
+  let body: { message?: string; from_email?: string; from_phone?: string }
   try {
     body = await req.json()
   } catch {
@@ -28,6 +28,7 @@ Deno.serve(async (req) => {
 
   const message   = body.message?.trim()
   const fromEmail = body.from_email?.trim()
+  const fromPhone = body.from_phone?.trim()
   if (!message) return json({ error: 'Message is required' }, 400)
 
   let unit = 'tidak diketahui'
@@ -58,7 +59,7 @@ Deno.serve(async (req) => {
       to:      MY_EMAIL,
       replyTo,
       subject: '[ParkitJiran] Maklum Balas',
-      content: `Unit: ${unit}${fromEmail ? `\nDaripada: ${fromEmail}` : ''}\n\n${message}`,
+      content: `Unit: ${unit}${fromEmail ? `\nDaripada: ${fromEmail}` : ''}${fromPhone ? `\nWhatsApp: ${fromPhone}` : ''}\n\n${message}`,
     })
   } finally {
     await client.close()

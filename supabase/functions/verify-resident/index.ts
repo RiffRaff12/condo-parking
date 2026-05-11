@@ -13,16 +13,35 @@ function json(body: unknown, status = 200) {
   return Response.json(body, { status, headers: CORS })
 }
 
+function normaliseUnit(input: string): string {
+  const s = input.trim().toUpperCase()
+  const m = s.match(/^([12])[\s\-]+([G]|\d{1,2})[\s\-]+(\d{1,2})$/)
+  if (!m) throw { code: 'INVALID_UNIT' }
+  const floor = m[2] === 'G' ? 'G' : m[2].padStart(2, '0')
+  return `${m[1]}-${floor}-${m[3].padStart(2, '0')}`
+}
+
+function normaliseBay(input: string): string {
+  const s = input.trim().toUpperCase()
+  const m = s.match(/^(LG|L1|G)[\s\-]?(\d{1,3})$/)
+  if (!m) throw { code: 'INVALID_BAY' }
+  return `${m[1]}-${m[2].padStart(3, '0')}`
+}
+
 Deno.serve(async (req) => {
   try {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS })
 
-  const { phone: rawPhone, unit, bay } = await req.json()
+  const { phone: rawPhone, unit: rawUnit, bay: rawBay } = await req.json()
 
-  if (!rawPhone || !unit || !bay) return json({ matched: false }, 400)
+  if (!rawPhone || !rawUnit || !rawBay) return json({ matched: false }, 400)
 
   // Normalise Malaysian trunk prefix: 0123… → 60123…
   const phone = rawPhone.startsWith('0') ? '6' + rawPhone : rawPhone
+
+  let unit: string, bay: string
+  try { unit = normaliseUnit(rawUnit) } catch { return json({ matched: false }, 400) }
+  try { bay  = normaliseBay(rawBay)  } catch { return json({ matched: false }, 400) }
 
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
     auth: { persistSession: false },

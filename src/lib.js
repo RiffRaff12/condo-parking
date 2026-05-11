@@ -130,11 +130,19 @@ export function normalisePhone(input) {
 }
 
 export function normaliseUnit(input) {
-  return String(input).trim().toUpperCase()
+  const s = String(input).trim().toUpperCase()
+  const m = s.match(/^([12])[\s\-]+([G]|\d{1,2})[\s\-]+(\d{1,2})$/)
+  if (!m) throw { code: 'INVALID_UNIT' }
+  const floor = m[2] === 'G' ? 'G' : m[2].padStart(2, '0')
+  const unit  = m[3].padStart(2, '0')
+  return `${m[1]}-${floor}-${unit}`
 }
 
 export function normaliseBay(input) {
-  return String(input).trim().toUpperCase()
+  const s = String(input).trim().toUpperCase()
+  const m = s.match(/^(LG|L1|G)[\s\-]?(\d{1,3})$/)
+  if (!m) throw { code: 'INVALID_BAY' }
+  return `${m[1]}-${m[2].padStart(3, '0')}`
 }
 
 

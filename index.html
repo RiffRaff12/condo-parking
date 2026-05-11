@@ -197,6 +197,12 @@
       <input type="email" id="pre-feedback-email" autocomplete="email"
         class="block w-full min-h-[44px] px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
     </div>
+    <div class="mb-3">
+      <label for="pre-feedback-phone" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5" data-i18n="lbl_feedback_phone">No. WhatsApp anda (pilihan)</label>
+      <input type="tel" id="pre-feedback-phone" autocomplete="tel"
+        data-i18n-placeholder="ph_feedback_phone" placeholder="cth: 0123456789"
+        class="block w-full min-h-[44px] px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
+    </div>
     <textarea id="pre-feedback-msg" rows="3" data-i18n-placeholder="ph_feedback" placeholder="Tulis masalah anda di sini..."
       class="block w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10 resize-none"></textarea>
     <div id="pre-feedback-err" class="hidden mt-3 px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-semibold" role="alert"></div>
@@ -315,6 +321,12 @@
     <div class="mb-3">
       <label for="feedback-email" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5" data-i18n="lbl_your_email">E-mel anda (untuk kami balas)</label>
       <input type="email" id="feedback-email" autocomplete="email"
+        class="block w-full min-h-[44px] px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
+    </div>
+    <div class="mb-3">
+      <label for="feedback-phone" class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5" data-i18n="lbl_feedback_phone">No. WhatsApp anda (pilihan)</label>
+      <input type="tel" id="feedback-phone" autocomplete="tel"
+        data-i18n-placeholder="ph_feedback_phone" placeholder="cth: 0123456789"
         class="block w-full min-h-[44px] px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm text-slate-800 bg-white appearance-none transition focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10">
     </div>
     <textarea id="feedback-msg" rows="3" data-i18n-placeholder="ph_feedback_main" placeholder="Tulis maklum balas atau laporan masalah anda di sini..."
@@ -637,6 +649,7 @@ function showApp() {
   appView.classList.remove('hidden')
   headerAuthBtns.classList.remove('hidden')
   document.getElementById('feedback-email').value = currentSession?.user?.user_metadata?.email || ''
+  document.getElementById('feedback-phone').value = currentSession?.user?.user_metadata?.phone || ''
 
   document.getElementById('feedback-ok').classList.add('hidden')
 
@@ -676,9 +689,11 @@ loginBtn.addEventListener('click', async () => {
     unit  = normaliseUnit(rawUnit)
     bay   = normaliseBay(rawBay)
   } catch (e) {
-    loginErrEl.textContent = e.code === 'INVALID_PHONE'
-      ? t('err_invalid_phone')
-      : t('err_invalid_input')
+    loginErrEl.textContent =
+      e.code === 'INVALID_PHONE' ? t('err_invalid_phone') :
+      e.code === 'INVALID_UNIT'  ? t('err_invalid_unit') :
+      e.code === 'INVALID_BAY'   ? t('err_invalid_bay') :
+      t('err_invalid_input')
     loginErrEl.classList.remove('hidden')
     return
   }
@@ -1024,15 +1039,22 @@ document.getElementById('toggle-closed-btn').addEventListener('click', () => {
 document.getElementById('feedback-btn').addEventListener('click', async () => {
   const msgEl    = document.getElementById('feedback-msg')
   const emailEl  = document.getElementById('feedback-email')
+  const phoneEl  = document.getElementById('feedback-phone')
   const errEl    = document.getElementById('feedback-err')
   const okEl     = document.getElementById('feedback-ok')
   const btn      = document.getElementById('feedback-btn')
   const message  = msgEl.value.trim()
   const fromEmail = emailEl.value.trim()
+  const fromPhone = phoneEl.value.trim()
 
   errEl.classList.add('hidden')
   okEl.classList.add('hidden')
 
+  if (!fromPhone) {
+    errEl.textContent = t('err_feedback_phone_empty')
+    errEl.classList.remove('hidden')
+    return
+  }
   if (!message) {
     errEl.textContent = t('err_feedback_empty')
     errEl.classList.remove('hidden')
@@ -1048,7 +1070,7 @@ document.getElementById('feedback-btn').addEventListener('click', async () => {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${currentSession.access_token}`,
       },
-      body: JSON.stringify({ message, from_email: fromEmail }),
+      body: JSON.stringify({ message, from_email: fromEmail, from_phone: fromPhone }),
     })
     if (!res.ok) throw new Error(t('err_server_generic'))
     msgEl.value = ''
@@ -1111,9 +1133,11 @@ document.getElementById('signup-submit-btn').addEventListener('click', async () 
     unit  = normaliseUnit(rawUnit)
     bay   = normaliseBay(rawBay)
   } catch (e) {
-    errEl.textContent = e.code === 'INVALID_PHONE'
-      ? t('err_invalid_phone')
-      : t('err_invalid_input')
+    errEl.textContent =
+      e.code === 'INVALID_PHONE' ? t('err_invalid_phone') :
+      e.code === 'INVALID_UNIT'  ? t('err_invalid_unit') :
+      e.code === 'INVALID_BAY'   ? t('err_invalid_bay') :
+      t('err_invalid_input')
     errEl.classList.remove('hidden')
     return
   }
@@ -1195,7 +1219,8 @@ document.getElementById('profile-save-btn').addEventListener('click', async () =
   const email = sanitize(document.getElementById('profile-email').value.trim(), 100)
   const rawBay = sanitize(document.getElementById('profile-bay').value, 20)
   if (!name || !rawBay) { showProfileMsg(t('profile_name_bay_req'), 'error'); return }
-  const bay = normaliseBay(rawBay)
+  let bay
+  try { bay = normaliseBay(rawBay) } catch { showProfileMsg(t('err_invalid_bay'), 'error'); return }
   const btn = document.getElementById('profile-save-btn')
   btn.disabled = true
   btn.textContent = t('saving')
@@ -1316,15 +1341,22 @@ document.getElementById('pre-auth-feedback-toggle').addEventListener('click', ()
 document.getElementById('pre-feedback-btn').addEventListener('click', async () => {
   const msgEl    = document.getElementById('pre-feedback-msg')
   const emailEl  = document.getElementById('pre-feedback-email')
+  const phoneEl  = document.getElementById('pre-feedback-phone')
   const errEl    = document.getElementById('pre-feedback-err')
   const okEl     = document.getElementById('pre-feedback-ok')
   const btn      = document.getElementById('pre-feedback-btn')
   const message  = msgEl.value.trim()
   const fromEmail = emailEl.value.trim()
+  const fromPhone = phoneEl.value.trim()
 
   errEl.classList.add('hidden')
   okEl.classList.add('hidden')
 
+  if (!fromPhone) {
+    errEl.textContent = t('err_feedback_phone_empty')
+    errEl.classList.remove('hidden')
+    return
+  }
   if (!message) {
     errEl.textContent = t('err_feedback_empty')
     errEl.classList.remove('hidden')
@@ -1337,7 +1369,7 @@ document.getElementById('pre-feedback-btn').addEventListener('click', async () =
     const res = await fetch(`${SUPABASE_URL}/functions/v1/send-feedback`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, from_email: fromEmail }),
+      body: JSON.stringify({ message, from_email: fromEmail, from_phone: fromPhone }),
     })
     if (!res.ok) throw new Error(t('err_server_generic'))
     msgEl.value = ''

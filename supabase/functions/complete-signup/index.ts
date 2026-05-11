@@ -19,6 +19,22 @@ function normalisePhone(input: string): string {
   return digits
 }
 
+function normaliseUnit(input: string): string {
+  const s = input.trim().toUpperCase()
+  const m = s.match(/^([12])[\s\-]+([G]|\d{1,2})[\s\-]+(\d{1,2})$/)
+  if (!m) throw { code: 'INVALID_UNIT' }
+  const floor = m[2] === 'G' ? 'G' : m[2].padStart(2, '0')
+  const unit  = m[3].padStart(2, '0')
+  return `${m[1]}-${floor}-${unit}`
+}
+
+function normaliseBay(input: string): string {
+  const s = input.trim().toUpperCase()
+  const m = s.match(/^(LG|L1|G)[\s\-]?(\d{1,3})$/)
+  if (!m) throw { code: 'INVALID_BAY' }
+  return `${m[1]}-${m[2].padStart(3, '0')}`
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS })
 
@@ -34,8 +50,11 @@ Deno.serve(async (req) => {
     try { phone = '6' + normalisePhone(body.phone) }
     catch { return json({ code: 'INVALID_PHONE', message: 'Invalid Malaysian mobile number' }, 400) }
 
-    const unit = unit_number.trim().toUpperCase()
-    const bay  = bay_number.trim().toUpperCase()
+    let unit: string, bay: string
+    try { unit = normaliseUnit(unit_number) }
+    catch { return json({ code: 'INVALID_UNIT', message: 'Invalid unit format. Expected: 1-G-07 or 2-10-16' }, 400) }
+    try { bay = normaliseBay(bay_number) }
+    catch { return json({ code: 'INVALID_BAY', message: 'Invalid bay format. Expected: LG-007, G-007 or L1-364' }, 400) }
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { persistSession: false } })
 

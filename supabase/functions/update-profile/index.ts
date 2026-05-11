@@ -13,6 +13,13 @@ function json(body: unknown, status = 200) {
   return Response.json(body, { status, headers: CORS })
 }
 
+function normaliseBay(input: string): string {
+  const s = input.trim().toUpperCase()
+  const m = s.match(/^(LG|L1|G)[\s\-]?(\d{1,3})$/)
+  if (!m) throw { code: 'INVALID_BAY' }
+  return `${m[1]}-${m[2].padStart(3, '0')}`
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS })
 
@@ -40,7 +47,10 @@ Deno.serve(async (req) => {
   const updates: Record<string, string> = {}
   const metaUpdates: Record<string, string> = {}
   if (name)  { updates.name = name.trim().slice(0, 100); metaUpdates.name = updates.name }
-  if (bay)   { updates.bay_number = bay.trim().toUpperCase().slice(0, 20); metaUpdates.bay = updates.bay_number }
+  if (bay) {
+    try { updates.bay_number = normaliseBay(bay); metaUpdates.bay = updates.bay_number }
+    catch { return json({ code: 'INVALID_BAY', message: 'Invalid bay format. Expected: LG-007, G-007 or L1-364' }, 400) }
+  }
   if (email) { updates.email = email.trim().slice(0, 200); metaUpdates.email = updates.email }
 
   const { error: dbErr } = await admin
