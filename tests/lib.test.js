@@ -145,6 +145,25 @@ describe('buildWhatsAppFulfilLink', () => {
     const url = buildWhatsAppFulfilLink('+60123456789', BAY, START, END)
     expect(url).toMatch(/^https:\/\/wa\.me\/60123456789/)
   })
+
+  test('includes unit in greeting when fulfillerUnit provided (Malay)', () => {
+    const url = buildWhatsAppFulfilLink('0123456789', BAY, START, END, '2-10-15')
+    const text = decodeURIComponent(url.split('?text=')[1])
+    expect(text).toContain('Salam jiran dari Unit 2-10-15!')
+  })
+
+  test('includes unit in greeting when fulfillerUnit provided (English)', () => {
+    const url = buildWhatsAppFulfilLink('0123456789', BAY, START, END, '2-10-15', 'en')
+    const text = decodeURIComponent(url.split('?text=')[1])
+    expect(text).toContain('Hi neighbour from Unit 2-10-15!')
+  })
+
+  test('omits unit from greeting when fulfillerUnit is null', () => {
+    const url = buildWhatsAppFulfilLink('0123456789', BAY, START, END, null)
+    const text = decodeURIComponent(url.split('?text=')[1])
+    expect(text).toContain('Salam jiran!')
+    expect(text).not.toContain('Unit')
+  })
 })
 
 describe('normalisePhone', () => {

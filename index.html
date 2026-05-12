@@ -593,6 +593,7 @@ let realtimeChannel  = null
 let pollInterval     = null
 let myPhone          = null
 let myBay            = null
+let myUnit           = null
 
 
 /* ── Toast ────────────────────────────────────────────── */
@@ -704,8 +705,10 @@ loginBtn.addEventListener('click', async () => {
     currentSession = await auth.verifyAndSignIn({ phone, unit, bay })
     myPhone = phone
     myBay = bay
+    myUnit = unit
     localStorage.setItem('pkjiran_phone', phone)
     localStorage.setItem('pkjiran_bay', bay)
+    localStorage.setItem('pkjiran_unit', unit)
     showApp()
     await renderList()
   } catch (e) {
@@ -724,8 +727,10 @@ logoutBtn.addEventListener('click', async () => {
   currentSession = null
   myPhone = null
   myBay = null
+  myUnit = null
   localStorage.removeItem('pkjiran_phone')
   localStorage.removeItem('pkjiran_bay')
+  localStorage.removeItem('pkjiran_unit')
   showLogin()
 })
 
@@ -816,6 +821,7 @@ submitBtn.addEventListener('click', async () => {
       requester_id:    currentSession.user.id,
       requester_phone: myPhone,
       requester_name:  currentSession.user.user_metadata?.name || '',
+      requester_unit:  myUnit,
       start_datetime:  new Date(fromISO).toISOString(),
       end_datetime:    new Date(toISO).toISOString(),
     })
@@ -874,7 +880,7 @@ function buildOpenCard(req) {
           </div>
         `)([fmtSlotFn(req.start_datetime), fmtSlotFn(req.end_datetime)])}
       </div>
-      ${req.requester_name ? `<div class="text-xs text-slate-400 mb-2.5">${t('by_requester')} <span class="font-semibold text-slate-600">${esc(req.requester_name)}</span></div>` : ''}
+      ${req.requester_name ? `<div class="text-xs text-slate-400 mb-2.5">${t('by_requester')} <span class="font-semibold text-slate-600">${esc(req.requester_name)}</span>${req.requester_unit ? ` · Unit <span class="font-semibold text-slate-600">${esc(req.requester_unit)}</span>` : ''}</div>` : ''}
       ${isMine
         ? `<button class="btn-cancel w-full min-h-[40px] px-3 py-2 bg-slate-50 text-slate-500 border border-slate-200 rounded-xl text-sm font-bold cursor-pointer whitespace-nowrap transition-all hover:bg-red-50 hover:text-red-600 hover:border-red-200"
                    data-id="${esc(req.id)}">${t('btn_cancel_request')}</button>
@@ -891,8 +897,8 @@ function buildOpenCard(req) {
         <div class="fp-err hidden px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-semibold"></div>
         <button class="btn-confirm flex items-center justify-center gap-2 w-full min-h-[50px] py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold cursor-pointer transition-colors"
                 data-id="${esc(req.id)}"
-                ${buildWhatsAppFulfilLink(req.requester_phone, myBay, req.start_datetime, req.end_datetime, lang)
-                  ? `data-wa-url="${esc(buildWhatsAppFulfilLink(req.requester_phone, myBay, req.start_datetime, req.end_datetime, lang))}"`
+                ${buildWhatsAppFulfilLink(req.requester_phone, myBay, req.start_datetime, req.end_datetime, myUnit, lang)
+                  ? `data-wa-url="${esc(buildWhatsAppFulfilLink(req.requester_phone, myBay, req.start_datetime, req.end_datetime, myUnit, lang))}"`
                   : ''}>
           ${t('confirm_wa')}
         </button>
@@ -1284,8 +1290,10 @@ document.getElementById('profile-delete-confirm-btn').addEventListener('click', 
       currentSession = null
       myPhone = null
       myBay = null
+      myUnit = null
       localStorage.removeItem('pkjiran_phone')
       localStorage.removeItem('pkjiran_bay')
+      localStorage.removeItem('pkjiran_unit')
       showLogin()
     } else {
       showProfileMsg(t('profile_delete_err'), 'error')
@@ -1321,6 +1329,7 @@ async function init() {
     const meta = currentSession.user?.user_metadata || {}
     myPhone = localStorage.getItem('pkjiran_phone') || meta.phone || ''
     myBay = localStorage.getItem('pkjiran_bay') || meta.bay || ''
+    myUnit = localStorage.getItem('pkjiran_unit') || null
     showApp()
     await renderList()
   } else {

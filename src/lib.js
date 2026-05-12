@@ -95,12 +95,15 @@ export function buildWhatsAppLink(phone) {
   return `https://wa.me/${waPhone(phone)}`
 }
 
-export function buildWhatsAppFulfilLink(requesterPhone, fulfillerBay, startIso, endIso, lang = 'ms') {
+export function buildWhatsAppFulfilLink(requesterPhone, fulfillerBay, startIso, endIso, fulfillerUnit = null, lang = 'ms') {
   if (!requesterPhone) return null
   const fmt = lang === 'en' ? fmtEN : fmtMalay
+  const greeting = lang === 'en'
+    ? `Hi neighbour${fulfillerUnit ? ` from Unit ${fulfillerUnit}` : ''}! 👋`
+    : `Salam jiran${fulfillerUnit ? ` dari Unit ${fulfillerUnit}` : ''}! 👋`
   const msg = lang === 'en'
-    ? `Hi neighbour! 👋\n\nI can offer my parking bay:\n🅿️ Bay: ${fulfillerBay}\n📅 From: ${fmt(startIso)}\n⏰ Until: ${fmt(endIso)}\n\nCan I help?`
-    : `Salam jiran! 👋\n\nSaya boleh tawarkan petak parking saya:\n🅿️ Petak: ${fulfillerBay}\n📅 Dari: ${fmt(startIso)}\n⏰ Hingga: ${fmt(endIso)}\n\nBoleh saya bantu?`
+    ? `${greeting}\n\nI can offer my parking bay:\n🅿️ Bay: ${fulfillerBay}\n📅 From: ${fmt(startIso)}\n⏰ Until: ${fmt(endIso)}\n\nCan I help?`
+    : `${greeting}\n\nSaya boleh tawarkan petak parking saya:\n🅿️ Petak: ${fulfillerBay}\n📅 Dari: ${fmt(startIso)}\n⏰ Hingga: ${fmt(endIso)}\n\nBoleh saya bantu?`
   return `https://wa.me/${waPhone(requesterPhone)}?text=${encodeURIComponent(msg)}`
 }
 
