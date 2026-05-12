@@ -4,6 +4,7 @@ function mockClient(overrides = {}) {
   const builder = {
     select:      vi.fn().mockReturnThis(),
     eq:          vi.fn().mockReturnThis(),
+    gt:          vi.fn().mockReturnThis(),
     in:          vi.fn().mockReturnThis(),
     limit:       vi.fn().mockReturnThis(),
     order:       vi.fn().mockResolvedValue({ data: [], error: null }),
