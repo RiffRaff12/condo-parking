@@ -193,6 +193,21 @@ describe('normaliseUnit', () => {
   test('passes through already-normalised value', () => {
     expect(normaliseUnit('2-10-16')).toBe('2-10-16')
   })
+  test('accepts LG floor and pads unit', () => {
+    expect(normaliseUnit('1-LG-7')).toBe('1-LG-07')
+  })
+  test('accepts lowercase lg floor', () => {
+    expect(normaliseUnit('2-lg-07')).toBe('2-LG-07')
+  })
+  test('accepts LG with space separator', () => {
+    expect(normaliseUnit('1 LG 7')).toBe('1-LG-07')
+  })
+  test('accepts floor 15', () => {
+    expect(normaliseUnit('1-15-03')).toBe('1-15-03')
+  })
+  test('throws INVALID_UNIT for floor 16', () => {
+    expect(() => normaliseUnit('1-16-03')).toThrow()
+  })
   test('throws INVALID_UNIT for non-condo format', () => {
     expect(() => normaliseUnit('A-12-3')).toThrow()
   })

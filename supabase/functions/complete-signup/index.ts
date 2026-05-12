@@ -21,9 +21,9 @@ function normalisePhone(input: string): string {
 
 function normaliseUnit(input: string): string {
   const s = input.trim().toUpperCase()
-  const m = s.match(/^([12])[\s\-]+([G]|\d{1,2})[\s\-]+(\d{1,2})$/)
+  const m = s.match(/^([12])[\s\-]+(LG|G|1[0-5]|0?[1-9])[\s\-]+(\d{1,2})$/)
   if (!m) throw { code: 'INVALID_UNIT' }
-  const floor = m[2] === 'G' ? 'G' : m[2].padStart(2, '0')
+  const floor = /^\d+$/.test(m[2]) ? m[2].padStart(2, '0') : m[2]
   const unit  = m[3].padStart(2, '0')
   return `${m[1]}-${floor}-${unit}`
 }
@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
 
     let unit: string, bay: string
     try { unit = normaliseUnit(unit_number) }
-    catch { return json({ code: 'INVALID_UNIT', message: 'Invalid unit format. Expected: 1-G-07 or 2-10-16' }, 400) }
+    catch { return json({ code: 'INVALID_UNIT', message: 'Invalid unit format. Expected: 1-LG-07, 1-G-07, or 2-10-16' }, 400) }
     try { bay = normaliseBay(bay_number) }
     catch { return json({ code: 'INVALID_BAY', message: 'Invalid bay format. Expected: LG-007, G-007 or L1-364' }, 400) }
 

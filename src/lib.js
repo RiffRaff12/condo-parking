@@ -131,9 +131,9 @@ export function normalisePhone(input) {
 
 export function normaliseUnit(input) {
   const s = String(input).trim().toUpperCase()
-  const m = s.match(/^([12])[\s\-]+([G]|\d{1,2})[\s\-]+(\d{1,2})$/)
+  const m = s.match(/^([12])[\s\-]+(LG|G|1[0-5]|0?[1-9])[\s\-]+(\d{1,2})$/)
   if (!m) throw { code: 'INVALID_UNIT' }
-  const floor = m[2] === 'G' ? 'G' : m[2].padStart(2, '0')
+  const floor = /^\d+$/.test(m[2]) ? m[2].padStart(2, '0') : m[2]
   const unit  = m[3].padStart(2, '0')
   return `${m[1]}-${floor}-${unit}`
 }
