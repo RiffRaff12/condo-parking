@@ -1365,7 +1365,11 @@ document.getElementById('pre-feedback-btn').addEventListener('click', async () =
   try {
     const res = await fetch(`${SUPABASE_URL}/functions/v1/send-feedback`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON,
+        'Authorization': `Bearer ${SUPABASE_ANON}`,
+      },
       body: JSON.stringify({ message, from_email: fromEmail, from_phone: fromPhone }),
     })
     if (!res.ok) throw new Error(t('err_server_generic'))

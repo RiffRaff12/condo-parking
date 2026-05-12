@@ -49,7 +49,8 @@ describe('validateRequestForm', () => {
     expect(r.ok).toBe(true)
   })
   test('accepts request exactly 3 days in advance', () => {
-    const r = validateRequestForm({ fromDate: daysFromNow(3), fromTime: '10:00', toDate: daysFromNow(3), toTime: '11:00' })
+    // Use 00:00 so the from-time is always ≤ 3 full days from now regardless of when the test runs
+    const r = validateRequestForm({ fromDate: daysFromNow(3), fromTime: '00:00', toDate: daysFromNow(3), toTime: '01:00' })
     expect(r.ok).toBe(true)
   })
   test('rejects request more than 3 days in advance', () => {

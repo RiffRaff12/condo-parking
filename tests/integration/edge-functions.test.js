@@ -37,4 +37,14 @@ describe('public edge functions — no auth required', () => {
     expect(data.code).not.toBe('UNAUTHORIZED_INVALID_JWT_FORMAT')
     expect(status).not.toBe(401)
   }, 15_000)
+
+  test('send-feedback is reachable without auth headers', async () => {
+    // Pre-auth feedback form calls this without a session token.
+    // Empty body → function returns 400 (missing message), not 401 (JWT error).
+    // Failure here means: redeploy with --no-verify-jwt
+    const { status, data } = await callFunction('send-feedback')
+    expect(data.code).not.toBe('UNAUTHORIZED_INVALID_JWT_FORMAT')
+    expect(status).not.toBe(401)
+    expect(status).toBe(400)
+  }, 15_000)
 })

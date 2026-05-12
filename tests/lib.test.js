@@ -178,32 +178,50 @@ describe('normalisePhone', () => {
 })
 
 describe('normaliseUnit', () => {
-  test('uppercases lowercase letters', () => {
-    expect(normaliseUnit('a-12-3')).toBe('A-12-3')
+  test('pads single-digit unit to two digits', () => {
+    expect(normaliseUnit('1-G-7')).toBe('1-G-07')
   })
-  test('trims leading and trailing whitespace', () => {
-    expect(normaliseUnit('  A12  ')).toBe('A12')
+  test('pads single-digit floor and unit', () => {
+    expect(normaliseUnit('2-5-3')).toBe('2-05-03')
   })
-  test('passes through an already-normalised value unchanged', () => {
-    expect(normaliseUnit('B-05')).toBe('B-05')
+  test('accepts space as separator', () => {
+    expect(normaliseUnit('1 G 7')).toBe('1-G-07')
   })
-  test('returns empty string for empty input', () => {
-    expect(normaliseUnit('')).toBe('')
+  test('uppercases g to G', () => {
+    expect(normaliseUnit('1-g-07')).toBe('1-G-07')
+  })
+  test('passes through already-normalised value', () => {
+    expect(normaliseUnit('2-10-16')).toBe('2-10-16')
+  })
+  test('throws INVALID_UNIT for non-condo format', () => {
+    expect(() => normaliseUnit('A-12-3')).toThrow()
+  })
+  test('throws INVALID_UNIT for empty string', () => {
+    expect(() => normaliseUnit('')).toThrow()
   })
 })
 
 describe('normaliseBay', () => {
-  test('uppercases lowercase letters', () => {
-    expect(normaliseBay('p-07')).toBe('P-07')
+  test('pads single-digit bay to three digits', () => {
+    expect(normaliseBay('LG-7')).toBe('LG-007')
   })
-  test('trims leading and trailing whitespace', () => {
-    expect(normaliseBay('  B2  ')).toBe('B2')
+  test('pads two-digit bay to three digits', () => {
+    expect(normaliseBay('G-60')).toBe('G-060')
   })
-  test('passes through an already-normalised value unchanged', () => {
-    expect(normaliseBay('C-11')).toBe('C-11')
+  test('accepts no separator between prefix and number', () => {
+    expect(normaliseBay('LG007')).toBe('LG-007')
   })
-  test('returns empty string for empty input', () => {
-    expect(normaliseBay('')).toBe('')
+  test('uppercases prefix', () => {
+    expect(normaliseBay('lg-007')).toBe('LG-007')
+  })
+  test('passes through already-normalised value', () => {
+    expect(normaliseBay('L1-364')).toBe('L1-364')
+  })
+  test('throws INVALID_BAY for unknown prefix', () => {
+    expect(() => normaliseBay('B2-007')).toThrow()
+  })
+  test('throws INVALID_BAY for empty string', () => {
+    expect(() => normaliseBay('')).toThrow()
   })
 })
 
