@@ -3,7 +3,8 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:integration": "vitest run --config vitest.integration.config.js"
   },
   "devDependencies": {
     "dotenv": "^17.4.2",

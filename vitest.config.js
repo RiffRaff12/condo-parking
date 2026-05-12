@@ -4,5 +4,6 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     env: { TZ: 'Asia/Kuala_Lumpur' },
+    exclude: ['**/node_modules/**', '**/tests/integration/**'],
   },
 })
