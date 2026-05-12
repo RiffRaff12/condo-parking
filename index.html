@@ -560,6 +560,7 @@ import { createDb }   from './src/db.js'
 import { createFeed } from './src/feed.js'
 import { esc, sanitize, fmtSlot, fmtSlotEN, fmtMalay, fmtEN, validateRequestForm, buildWhatsAppFulfilLink, computeToDefaults, normalisePhone, normaliseUnit, normaliseBay, buildShareLink, buildShareMessage, resolveDeepLink } from './src/lib.js'
 import { getLang, setLang, t, applyTranslations } from './src/i18n.js'
+import { completeSignup } from './src/signup.js'
 
 /* ── i18n setup ───────────────────────────────────────── */
 applyTranslations()
@@ -1147,11 +1148,7 @@ document.getElementById('signup-submit-btn').addEventListener('click', async () 
   btn.textContent = t('registering')
 
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/complete-signup`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, phone, unit_number: unit, bay_number: bay }),
-    })
+    const res = await completeSignup(SUPABASE_URL, SUPABASE_ANON, { name, email, phone, unit_number: unit, bay_number: bay })
     const data = await res.json()
     if (!res.ok) {
       errEl.textContent = data.code === 'DUPLICATE_PHONE'

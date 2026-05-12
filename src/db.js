@@ -41,6 +41,7 @@ export function createDb(client) {
         .from('requests')
         .select('*')
         .eq('status', 'open')
+        .gt('end_datetime', new Date().toISOString())
         .order('created_at', { ascending: false })
       if (error) throw error
       return data
